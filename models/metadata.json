@@ -1,0 +1,37 @@
+{
+  "feature_names": [
+    "Term",
+    "NoEmp",
+    "NewExist",
+    "CreateJob",
+    "RetainedJob",
+    "DisbursementGross",
+    "UrbanRural",
+    "RevLineCr",
+    "LowDoc",
+    "SBA_Appv",
+    "GrAppv"
+  ],
+  "label_names": {
+    "0": "Critical",
+    "1": "At-Risk",
+    "2": "Stable",
+    "3": "Growing",
+    "4": "Thriving"
+  },
+  "features_to_vary": [
+    "Term",
+    "DisbursementGross",
+    "SBA_Appv",
+    "GrAppv",
+    "CreateJob",
+    "RetainedJob"
+  ],
+  "immutable_features": [
+    "NewExist",
+    "UrbanRural",
+    "NoEmp",
+    "RevLineCr",
+    "LowDoc"
+  ]
+}

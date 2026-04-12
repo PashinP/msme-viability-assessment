@@ -1,0 +1,42 @@
+# Data files
+SBAnational.csv
+*.csv
+
+# Large model files (only deploy XGBoost + LightGBM)
+models/rf_mc.pkl
+models/stack_mc.pkl
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# CatBoost
+catboost_info/
+
+# Environment
+.env
+venv/
+env/
+
+# SQLite DB (recreated on deploy)
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Visualizations (notebook outputs)
+visualizations/
