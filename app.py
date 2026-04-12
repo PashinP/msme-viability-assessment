@@ -17,9 +17,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import io
 import time
+import os
 
 # ── Configuration ──
-API_BASE = "http://localhost:8000"
+API_BASE = os.environ.get("API_URL", "https://msme-viability-assessment.onrender.com")
 API_KEY = "msme-dev-key-2024"
 HEADERS = {"X-API-Key": API_KEY}
 
