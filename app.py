@@ -89,20 +89,24 @@ st.markdown("""
 # ── Helper Functions ──
 
 def api_call(method, endpoint, **kwargs):
-    """Make a call to the FastAPI backend."""
+    """Make a call to the FastAPI backend with retry for Render cold starts."""
     url = f"{API_BASE}{endpoint}"
     try:
         if method == "GET":
-            r = requests.get(url, headers=HEADERS, timeout=30)
+            r = requests.get(url, headers=HEADERS, timeout=120)
         elif method == "POST":
-            r = requests.post(url, headers=HEADERS, timeout=60, **kwargs)
+            r = requests.post(url, headers=HEADERS, timeout=180, **kwargs)
         elif method == "FILE":
-            r = requests.post(url, headers={"X-API-Key": API_KEY}, timeout=120, **kwargs)
+            r = requests.post(url, headers={"X-API-Key": API_KEY}, timeout=240, **kwargs)
         r.raise_for_status()
         return r.json()
+    except requests.exceptions.ReadTimeout:
+        st.warning("⏳ **The API server is waking up** (Render free tier sleeps after inactivity). "
+                   "Please click the button again — it should respond within a few seconds now!")
+        return None
     except requests.exceptions.ConnectionError:
-        st.error("⚠️ **Cannot connect to the API server.** Make sure the FastAPI backend is running on port 8000.\n\n"
-                 "Run this in a terminal:\n```\ncd ~/Desktop/Practicum_Project\npython3 -m uvicorn api.server:app --port 8000\n```")
+        st.error("⚠️ **Cannot connect to the API server.** The backend may be restarting. "
+                 "Please wait 30 seconds and try again.")
         return None
     except requests.exceptions.HTTPError as e:
         st.error(f"API Error: {e.response.text}")
