@@ -10,12 +10,15 @@ Endpoints:
   GET  /health           — System health check
   GET  /analytics        — Historical analytics from DB
 """
-import os, uuid, io, csv
+import os, uuid, io, csv, warnings
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Suppress sklearn version warnings for pickled models
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Security
 from fastapi.security import APIKeyHeader
@@ -45,47 +48,62 @@ def verify_api_key(key: str | None = Security(api_key_header)):
 
 # ── Lifespan ──
 engine_instance: PredictionEngine | None = None
-similar_engine: "SimilarBusinessEngine | None" = None
-chat_agent_instance = None
-loan_optimizer = None
+
+# Lazy-loaded components (to stay under 512MB on Render free tier)
+_similar_engine = None
+_chat_agent_instance = None
+_loan_optimizer = None
+
+
+def get_similar_engine():
+    """Lazy-load the similarity engine only when needed."""
+    global _similar_engine
+    if _similar_engine is None:
+        try:
+            from api.similar_engine import SimilarBusinessEngine
+            _similar_engine = SimilarBusinessEngine()
+            print(f"[Server] Similar Business Engine: {_similar_engine.total_records:,} records indexed")
+        except Exception as e:
+            print(f"[Server] Similar Business Engine: not available ({e})")
+            raise
+    return _similar_engine
+
+
+def get_chat_agent():
+    """Lazy-load the chat agent only when needed."""
+    global _chat_agent_instance
+    if _chat_agent_instance is None:
+        try:
+            from api.chat_agent import ChatAgent
+            _chat_agent_instance = ChatAgent()
+            print("[Server] Chat Agent: Gemini connected")
+        except Exception as e:
+            print(f"[Server] Chat Agent: not available ({e})")
+            raise
+    return _chat_agent_instance
+
+
+def get_loan_optimizer():
+    """Lazy-load the loan optimizer only when needed."""
+    global _loan_optimizer
+    if _loan_optimizer is None:
+        from api.optimizer import LoanOptimizer
+        _loan_optimizer = LoanOptimizer(engine_instance)
+        print("[Server] Loan Optimizer: ready")
+    return _loan_optimizer
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global engine_instance, similar_engine, chat_agent_instance, loan_optimizer
+    global engine_instance
     init_db()
     engine_instance = PredictionEngine()
     print(f"[Server] Models loaded: {list(engine_instance.models.keys())}")
     print(f"[Server] Database initialized at: {os.path.abspath('msme_viability.db')}")
-
-    # Load similarity engine (graceful if data/ not present)
-    try:
-        from api.similar_engine import SimilarBusinessEngine
-        similar_engine = SimilarBusinessEngine()
-        print(f"[Server] Similar Business Engine: {similar_engine.total_records:,} records indexed")
-    except Exception as e:
-        print(f"[Server] Similar Business Engine: not available ({e})")
-        similar_engine = None
-
-    # Load chat agent (graceful if no API key)
-    try:
-        from api.chat_agent import ChatAgent
-        chat_agent_instance = ChatAgent()
-        print("[Server] Chat Agent: Gemini connected")
-    except Exception as e:
-        print(f"[Server] Chat Agent: not available ({e})")
-        chat_agent_instance = None
-
-    # Load loan optimizer
-    from api.optimizer import LoanOptimizer
-    loan_optimizer = LoanOptimizer(engine_instance)
-    print("[Server] Loan Optimizer: ready")
+    print("[Server] Heavy components (similarity, chat, optimizer) will lazy-load on first request")
 
     yield
     engine_instance = None
-    similar_engine = None
-    chat_agent_instance = None
-    loan_optimizer = None
 
 
 # ── App ──
@@ -233,16 +251,19 @@ def recommend(req: RecommendationRequest, db: Session = Depends(get_db),
 
 @app.post("/similar")
 def find_similar(application: LoanApplication, _key: str = Depends(verify_api_key)):
-    if similar_engine is None:
+    try:
+        sim = get_similar_engine()
+    except Exception:
         raise HTTPException(503, "Similar Business Engine not available")
     app_dict = _app_to_dict(application)
-    return similar_engine.find_similar(app_dict)
+    return sim.find_similar(app_dict)
 
 
 @app.post("/optimize")
 def optimize_loan(application: LoanApplication, _key: str = Depends(verify_api_key)):
     app_dict = _app_to_dict(application)
-    return loan_optimizer.generate_optimal_structure(app_dict)
+    optimizer = get_loan_optimizer()
+    return optimizer.generate_optimal_structure(app_dict)
 
 
 @app.post("/redflags")
@@ -250,8 +271,11 @@ def get_red_flags(application: LoanApplication, _key: str = Depends(verify_api_k
     from api.optimizer import detect_red_flags
     app_dict = _app_to_dict(application)
     similar_data = None
-    if similar_engine:
-        similar_data = similar_engine.find_similar(app_dict)
+    try:
+        sim = get_similar_engine()
+        similar_data = sim.find_similar(app_dict)
+    except Exception:
+        pass
     flags = detect_red_flags(app_dict, similar_data)
     return {"flags": flags, "total_flags": len(flags)}
 
@@ -266,12 +290,14 @@ def get_schemes(application: LoanApplication, _key: str = Depends(verify_api_key
 
 @app.post("/chat")
 def chat(payload: dict, _key: str = Depends(verify_api_key)):
-    if chat_agent_instance is None:
+    try:
+        agent = get_chat_agent()
+    except Exception:
         raise HTTPException(503, "Chat agent not available (no Gemini API key)")
     messages = payload.get("messages", [])
     if not messages:
         raise HTTPException(400, "No messages provided")
-    result = chat_agent_instance.chat(messages)
+    result = agent.chat(messages)
     return result
 
 
