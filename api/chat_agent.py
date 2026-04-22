@@ -122,7 +122,7 @@ class ChatAgent:
             raise RuntimeError("GEMINI_API_KEY not set in .env file")
 
         self.model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
+            model_name="gemini-flash-latest",
             system_instruction=SYSTEM_PROMPT,
         )
 
@@ -158,7 +158,7 @@ class ChatAgent:
         chat = self.model.start_chat(history=gemini_history)
         last_msg = messages[-1]["content"]
 
-        # Retry with exponential backoff for rate limits (Gemini free tier: 5 RPM)
+        # Retry with exponential backoff for rate limits (Gemini free tier)
         max_retries = 3
         for attempt in range(max_retries):
             try:
@@ -167,8 +167,8 @@ class ChatAgent:
                 break
             except Exception as e:
                 error_str = str(e).lower()
-                if ("429" in error_str or "resource" in error_str or
-                     "rate" in error_str or "quota" in error_str):
+                if ("429" in error_str or "resource exhausted" in error_str or
+                     "rate limit" in error_str or "quota exceeded" in error_str):
                     if attempt < max_retries - 1:
                         wait = 2 ** (attempt + 1)  # 2s, 4s, 8s
                         print(f"[ChatAgent] Rate limited, retrying in {wait}s (attempt {attempt+1}/{max_retries})")
