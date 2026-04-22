@@ -60,9 +60,14 @@ def get_similar_engine():
     global _similar_engine
     if _similar_engine is None:
         try:
-            from api.similar_engine import SimilarBusinessEngine
-            _similar_engine = SimilarBusinessEngine()
-            print(f"[Server] Similar Business Engine: {_similar_engine.total_records:,} records indexed")
+            if os.getenv("RENDER"):
+                from api.dummy_similar_engine import DummySimilarBusinessEngine
+                _similar_engine = DummySimilarBusinessEngine()
+                print(f"[Server] Using Dummy Similar Business Engine (Render free tier mode)")
+            else:
+                from api.similar_engine import SimilarBusinessEngine
+                _similar_engine = SimilarBusinessEngine()
+                print(f"[Server] Similar Business Engine: {_similar_engine.total_records:,} records indexed")
         except Exception as e:
             print(f"[Server] Similar Business Engine: not available ({e})")
             raise
