@@ -10,6 +10,7 @@ Our validation logic ensures extracted features are within valid ranges.
 import os
 import json
 import re
+import time
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -157,8 +158,36 @@ class ChatAgent:
         chat = self.model.start_chat(history=gemini_history)
         last_msg = messages[-1]["content"]
 
-        response = chat.send_message(last_msg)
-        response_text = response.text
+        # Retry with exponential backoff for rate limits (Gemini free tier: 5 RPM)
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = chat.send_message(last_msg)
+                response_text = response.text
+                break
+            except Exception as e:
+                error_str = str(e).lower()
+                if ("429" in error_str or "resource" in error_str or
+                     "rate" in error_str or "quota" in error_str):
+                    if attempt < max_retries - 1:
+                        wait = 2 ** (attempt + 1)  # 2s, 4s, 8s
+                        print(f"[ChatAgent] Rate limited, retrying in {wait}s (attempt {attempt+1}/{max_retries})")
+                        time.sleep(wait)
+                        continue
+                    else:
+                        return {
+                            "response": "⏳ The AI service is temporarily busy. Please wait a moment and try again.",
+                            "features_extracted": None,
+                            "validation_warnings": [],
+                            "extraction_complete": False,
+                        }
+                else:
+                    return {
+                        "response": f"⚠️ Something went wrong: {str(e)[:200]}. Please try again.",
+                        "features_extracted": None,
+                        "validation_warnings": [],
+                        "extraction_complete": False,
+                    }
 
         # Check if features were extracted
         features_raw = extract_json_from_text(response_text)
