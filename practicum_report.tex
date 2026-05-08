@@ -1,0 +1,887 @@
+\documentclass[12pt,a4paper]{report}
+
+% ============================================================
+% PACKAGES
+% ============================================================
+\usepackage[left=1.25in, right=1in, top=1in, bottom=1in]{geometry}
+\usepackage{mathptmx}          % Times New Roman font
+\usepackage{setspace}           % Line spacing
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{tocloft}
+\usepackage{etoolbox}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+% ============================================================
+% FORMATTING
+% ============================================================
+\onehalfspacing                 % 1.5 line spacing
+
+% Fix titlesec + report class compatibility
+\titleformat{\chapter}[display]
+  {\normalfont\Large\bfseries\centering}
+  {\MakeUppercase{\chaptertitlename}\ \thechapter}{12pt}{\Large\bfseries}
+\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
+
+% Section heading: 14pt, left aligned, 6pt above/below
+\titleformat{\section}
+  {\normalfont\large\bfseries}
+  {\thesection}{1em}{}
+\titlespacing*{\section}{0pt}{12pt}{6pt}
+
+% Subsection heading: 12pt bold
+\titleformat{\subsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsection}{1em}{}
+\titlespacing*{\subsection}{0pt}{6pt}{6pt}
+
+% Page numbers at bottom center
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}}
+
+% Code listing style
+\lstset{
+  basicstyle=\footnotesize\ttfamily,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!10},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!60!black},
+  stringstyle=\color{red!80!black},
+  tabsize=4,
+  showstringspaces=false,
+}
+
+% ============================================================
+% DOCUMENT BEGINS
+% ============================================================
+\begin{document}
+
+% ---- TITLE PAGE ----
+\begin{titlepage}
+\centering
+\vspace*{0.5cm}
+
+\rule{\textwidth}{1.5pt}\\[0.4cm]
+{\LARGE\bfseries MAJOR PROJECT REPORT\\[0.3cm]}
+{\large\bfseries on\\[0.3cm]}
+{\LARGE\bfseries An Integrated AI Framework for MSME Viability Assessment:\\[0.2cm]
+Multi-Class Prediction, SHAP Explainability, and\\[0.2cm]
+Counterfactual Recommendations\\[0.2cm]}
+\rule{\textwidth}{1.5pt}\\[1.5cm]
+
+{\large\textit{Submitted in partial fulfillment of the requirements\\for the degree of}\\[0.5cm]}
+{\Large\bfseries Bachelor of Technology\\in\\Computer Science and Engineering\\[1.2cm]}
+
+{\large\textit{Submitted by:}\\[0.3cm]}
+{\Large\bfseries Student Name\\}
+{\large Roll No.: XXXX\\[0.8cm]}
+
+{\large\textit{Under the guidance of:}\\[0.3cm]}
+{\Large\bfseries Supervisor Name\\}
+{\large Designation\\[1.2cm]}
+
+% \includegraphics[width=3cm]{university_logo.png}\\[0.5cm]  % Uncomment after uploading logo
+
+{\Large\bfseries Department of Computer Science and Engineering\\[0.2cm]}
+{\large University Name\\}
+{\large City, State\\[0.5cm]}
+{\large April 2026\\}
+
+\end{titlepage}
+
+% ---- CERTIFICATE PAGE (placeholder) ----
+\newpage
+\thispagestyle{empty}
+\begin{center}
+{\Large\bfseries CERTIFICATE\\[1cm]}
+\end{center}
+
+This is to certify that the project report entitled \textbf{``An Integrated AI Framework for MSME Viability Assessment: Multi-Class Prediction, SHAP Explainability, and Counterfactual Recommendations''} submitted by \textbf{Student Name} (Roll No.: XXXX) is a bonafide work carried out under my supervision and guidance in partial fulfillment of the requirements for the degree of Bachelor of Technology in Computer Science and Engineering.
+
+\vspace{3cm}
+\begin{flushleft}
+\textbf{Date:} \hfill \textbf{Supervisor Name}\\
+\textbf{Place:} \hfill Designation\\
+\hfill Department of CSE\\
+\hfill University Name
+\end{flushleft}
+
+% ---- ACKNOWLEDGEMENT ----
+\newpage
+\thispagestyle{empty}
+\begin{center}
+{\Large\bfseries ACKNOWLEDGEMENT\\[1cm]}
+\end{center}
+
+I would like to express my sincere gratitude to my project supervisor, \textbf{Supervisor Name}, for providing invaluable guidance, continuous encouragement, and constructive feedback throughout the course of this project. Their expertise in the domain of machine learning and financial analytics was instrumental in shaping the direction and quality of this work.
+
+I am also thankful to the \textbf{Head of the Department}, Department of Computer Science and Engineering, for providing the necessary infrastructure and support that made this project possible.
+
+I extend my appreciation to all faculty members of the department who shared their knowledge and insights during various stages of the project. I would also like to thank my peers and classmates for their useful discussions and cooperation.
+
+Finally, I am deeply grateful to my family for their unwavering support and encouragement throughout my academic journey.
+
+\vspace{2cm}
+\begin{flushright}
+\textbf{Student Name}\\
+Roll No.: XXXX
+\end{flushright}
+
+% ---- FRONT MATTER (Roman numerals) ----
+\pagenumbering{roman}
+
+% ---- ABSTRACT ----
+\newpage
+\begin{center}
+{\Large\bfseries ABSTRACT\\[1cm]}
+\end{center}
+\addcontentsline{toc}{chapter}{Abstract}
+
+Micro, Small, and Medium Enterprises (MSMEs) make up the largest segment of businesses worldwide but experience high failure rates due to poor access to finance and lack of reliable viability assessment techniques. Previous machine learning models for MSME and small business evaluation rely solely on binary categorization (default vs.\ non-default), provide no risk stratification, and deliver no advice for enhancing the success of enterprises.
+
+This project presents an AI-based solution that overcomes these limitations in three key ways: (1)~a unique five-class viability taxonomy (Critical, At-Risk, Stable, Growing, Thriving) generated using a composite health score that converts loan outcomes from binary classifications into risk gradations; (2)~per-prediction interpretability using TreeSHAP; and (3)~a prescriptive counterfactual model that recommends minimal changes to improve viability classification.
+
+By training XGBoost and LightGBM on 899,164 U.S.\ SBA loan transactions with 11 engineered variables, we attain accuracy rates of 92.78\% and 92.98\% respectively in five-class predictions (macro AUC $>$ 0.986), far exceeding logistic regression (77.67\%) and naive baselines (53.31\%). The counterfactual engine generates viable solutions for 200 examples at sub-3-millisecond latency, resolving 82\% of transitions by altering a single feature. SHAP and counterfactual analyses are internally consistent, with loan tenure and gross approved amount serving as key viability indicators in both. The system is deployed as a FastAPI--Streamlit decoupled architecture with auditing capabilities.
+
+\textbf{Keywords:} MSME viability assessment, XGBoost, LightGBM, SHAP explainability, counterfactual recommendations, multi-class classification, credit risk, prescriptive analytics.
+
+% ---- TABLE OF CONTENTS ----
+\newpage
+\tableofcontents
+
+% ---- LIST OF FIGURES ----
+\newpage
+\listoffigures
+\addcontentsline{toc}{chapter}{List of Figures}
+
+% ---- LIST OF TABLES ----
+\newpage
+\listoftables
+\addcontentsline{toc}{chapter}{List of Tables}
+
+
+% ============================================================
+% MAIN MATTER (Arabic numerals)
+% ============================================================
+\newpage
+\pagenumbering{arabic}
+
+
+% ============================================================
+% CHAPTER 1: INTRODUCTION
+% ============================================================
+\chapter{Introduction}
+
+\section{Background}
+
+The Micro, Small, and Medium Enterprises (MSMEs) form the fundamental infrastructure of economies across the globe, with over 90\% of all businesses being MSMEs and responsible for substantial contribution to employment generation and GDP in all countries. India is one such example where around 95.8\% of all businesses are MSMEs and provide employment opportunities to more than 110 million people; however, the problem that arises here is that their success rates remain under 50\% during the first five years of their functioning. Thus, understanding the capability to evaluate and determine the sustainability of MSMEs has been a critical area of research in financial economics for almost fifty years now.
+
+The systematic study of business failure prediction began with Beaver's foundational work on univariate ratio analysis, which proved that single financial ratios were good enough to predict corporate failure with statistical significance. Following Beaver's contributions, Altman formulated an effective Z-score model using multivariate discriminant analysis for incorporating the effect of multiple financial ratios in a composite failure score. Finally, Ohlson contributed to this methodology by incorporating conditional logit regression for predicting probabilities instead of binary classification models.
+
+Though these models remain influential, classical statistical models have been shown to have certain shortcomings in dealing with the diverse and opaque MSME space. According to estimates by the International Finance Corporation (IFC), the financing gap for MSMEs in the world amounts to over \$5.2 trillion per year, of which the greatest share falls in developing countries where financial data is sparse and methods of assessment are rudimentary.
+
+\section{Motivation}
+
+The introduction of machine learning techniques has greatly enhanced the performance of predictions in credit scoring and bankruptcy studies. Ensemble machine learning algorithms, such as bagging and boosting models, are much more effective than conventional statistical algorithms. The U.S.\ Small Business Administration (SBA) National dataset provides 899,164 loan records with clear class labels, serving as an excellent benchmark for credit rating investigations.
+
+However, the high level of predictive power offered by today's ensemble methods is balanced by an inherent problem of interpretability. Gradient boosting ensembles are essentially black boxes; they produce accurate predictions but do not offer insightful explanations to practitioners or regulators. Even with interpretability algorithms like SHAP and LIME, current models are essentially diagnostic and not prescriptive: they can tell us why a specific prediction occurred, but cannot say how a change in the features would cause an alternative outcome.
+
+This project is motivated by the need to bridge the gap between high-accuracy prediction, transparent explainability, and actionable prescriptive guidance --- all within a single operational system for MSME viability assessment.
+
+\section{Objectives of the Project}
+
+The primary objectives of this project are:
+\begin{enumerate}
+    \item To design and implement a \textbf{five-class viability taxonomy} (Critical, At-Risk, Stable, Growing, Thriving) using a composite health score, moving beyond the binary classification paradigm dominant in existing literature.
+    \item To train and evaluate \textbf{XGBoost and LightGBM classifiers} on 899,164 U.S.\ SBA loan records, achieving high accuracy on the multi-class viability prediction task.
+    \item To integrate \textbf{SHAP-based explainability} using TreeSHAP, providing per-prediction feature attribution that renders each viability assessment transparent and auditable.
+    \item To develop a \textbf{deterministic counterfactual recommendation engine} inspired by DiCE, capable of identifying minimal feasible modifications in enterprise features required to improve viability classification.
+    \item To deploy the complete framework as a \textbf{production-ready, decoupled FastAPI--Streamlit architecture} with persistent audit logging.
+\end{enumerate}
+
+\section{Scope of the Project}
+
+The scope of this project encompasses:
+\begin{itemize}
+    \item Data preprocessing, feature engineering, and label engineering on the SBA National dataset.
+    \item Training, hyperparameter tuning, and evaluation of gradient boosting classifiers.
+    \item Implementation of global and local SHAP explainability.
+    \item Design and implementation of a deterministic counterfactual recommendation engine.
+    \item Development of a REST API backend (FastAPI) and interactive web frontend (Streamlit).
+    \item Quantitative evaluation of all system components including prediction accuracy, explanation consistency, and recommendation feasibility.
+\end{itemize}
+
+\section{Organization of the Report}
+
+The remainder of this report is organized as follows:
+\begin{itemize}
+    \item \textbf{Chapter 2: Related Work} --- Reviews classical failure prediction models, machine learning approaches in credit risk, explainable AI in finance, and counterfactual explanation frameworks.
+    \item \textbf{Chapter 3: Problem Statement and Objectives} --- Formally defines the research problem, identifies gaps, and states the objectives.
+    \item \textbf{Chapter 4: Project Analysis and Design} --- Covers software requirements, system architecture, use case diagrams, and data flow.
+    \item \textbf{Chapter 5: Proposed Work and Methodology} --- Details the dataset, five-class taxonomy, model architectures, SHAP implementation, and counterfactual engine.
+    \item \textbf{Chapter 6: Results and Discussion} --- Presents experimental results with analysis.
+    \item \textbf{Chapter 7: Conclusion} --- Summarizes key findings and contributions.
+    \item \textbf{Chapter 8: Future Scope of Work} --- Outlines future research directions.
+\end{itemize}
+
+
+% ============================================================
+% CHAPTER 2: RELATED WORK
+% ============================================================
+\chapter{Related Work}
+
+This chapter reviews the literature across four interconnected domains that collectively motivate the present work: classical statistical approaches to business failure prediction, machine learning methods for credit risk assessment, explainable artificial intelligence in financial decision-making, and counterfactual explanation frameworks for prescriptive analytics.
+
+\section{Classical Statistical Approaches to Business Failure Prediction}
+
+The systematic prediction of business failure has occupied financial researchers since Beaver's foundational study, which demonstrated that individual financial ratios --- particularly the cash flow-to-total debt ratio --- possess significant discriminatory power between failing and non-failing firms. The major constraint associated with Beaver's univariate model is that it uses single ratio classification that cannot account for the multi-dimensional aspects of financial distress.
+
+Altman tried to correct this limitation by proposing the Z-Score model, an application of the multivariate discriminant function using five financial ratios (working-capital/total-assets, retained earnings/total-assets, EBIT/total-assets, market value of equity/book value of liabilities, and sales/total-assets). The Z-Score model achieved classification accuracies exceeding 90\% on its original sample and became the most widely adopted bankruptcy prediction tool.
+
+Ohlson subsequently introduced conditional logit regression into the failure prediction domain, offering advantages such as freedom from multivariate normality assumptions and the ability to produce calibrated probability estimates. Ohlson's O-Score model indicated that firm size, leverage structure, and performance deterioration are key determinants of bankruptcy.
+
+Although these models are useful, they present limitations in the MSME context. They were developed using data from publicly listed firms with audited financial statements, unlike MSMEs which often lack structured financial reporting. Additionally, the global MSME financing gap exceeds \$5.2 trillion annually, and credit guarantee systems in Asia remain inefficient. Altman et al.\ show that the Z-Score model achieves only about 75\% accuracy internationally without country-specific adjustments, highlighting limitations of static ratio-based models.
+
+\section{Machine Learning Approaches in Credit Risk Modeling}
+
+Traditional statistical models have limited success in credit risk prediction, leading to the adoption of machine learning approaches. Barboza et al.\ demonstrate that ensemble methods such as bagging and boosting outperform traditional techniques by approximately 10\% in accuracy. This improvement is due to their ability to capture nonlinear relationships and complex feature interactions.
+
+Large structured datasets have further accelerated this progress. Li et al.\ provide a dataset of 899,164 SBA loan records, which has become a benchmark for credit risk studies. Among machine learning methods, tree-based models are particularly effective. Random Forest constructs ensembles using bootstrap aggregation, while gradient boosting methods such as XGBoost and LightGBM achieve superior performance through sequential learning and optimization techniques.
+
+Handling class imbalance is critical in financial datasets. SMOTE, introduced by Chawla et al., generates synthetic minority samples and is widely used in preprocessing. Studies by Xia et al.\ and Wang et al.\ confirm the superiority of boosting methods, while Min and Lee show that support vector machines are less scalable and less interpretable compared to tree-based ensembles.
+
+Most existing work focuses on binary classification (default vs.\ non-default). However, this fails to capture varying levels of business viability, which is essential for nuanced decision-making.
+
+\section{Explainable Artificial Intelligence in Financial Decision-Making}
+
+The increased complexity of machine learning models introduces challenges in interpretability. Ribeiro et al.\ propose LIME, a model-agnostic method that explains predictions locally using interpretable approximations. However, LIME suffers from instability due to stochastic sampling.
+
+Lundberg and Lee introduce SHAP, based on cooperative game theory, providing consistent and theoretically grounded feature attribution. TreeSHAP, proposed by Lundberg et al., enables efficient computation of SHAP values for tree-based models, making real-time explainability feasible.
+
+Applications in finance demonstrate the value of explainability. Ariza-Garz\'{o}n et al.\ show improved trust in lending decisions, while Bussmann et al.\ confirm integration into institutional workflows without loss of accuracy. B\"{u}cker et al.\ emphasize regulatory compliance, and Li and Sun highlight improved feature selection.
+
+Despite these advances, explainability remains diagnostic rather than prescriptive. While models explain why a prediction occurred, they do not indicate how to change outcomes.
+
+\section{Counterfactual Explanations and Prescriptive Decision Support}
+
+Counterfactual explanations address the limitations of diagnostic models by identifying changes required to alter outcomes. Wachter et al.\ formalize this concept within GDPR, emphasizing the need for actionable transparency.
+
+Mothilal et al.\ introduce DiCE, which generates diverse counterfactuals by optimizing proximity, validity, and diversity. The method distinguishes between mutable and immutable features, ensuring practical recommendations.
+
+Karimi et al.\ classify approaches into contrastive explanations and consequential recommendations, highlighting the importance of actionable insights.
+
+Existing research primarily focuses on binary outcomes. Extending counterfactual methods to multi-class MSME viability assessment remains an open problem addressed in this work.
+
+\section{Summary and Research Gaps}
+
+Three key gaps emerge from the literature:
+\begin{enumerate}
+    \item Most models rely on \textbf{binary classification}, limiting nuanced risk assessment.
+    \item While tools like SHAP provide \textbf{diagnostic explanations}, they lack prescriptive capabilities.
+    \item \textbf{Deployment challenges} such as technical debt and system fragility remain underexplored.
+\end{enumerate}
+
+This project addresses these gaps through an integrated framework combining multi-class viability prediction using gradient boosting, diagnostic explainability via TreeSHAP, and prescriptive recommendations using DiCE-based counterfactual analysis.
+
+
+% ============================================================
+% CHAPTER 3: PROBLEM STATEMENT AND OBJECTIVES
+% ============================================================
+\chapter{Problem Statement and Objectives}
+
+\section{Problem Statement}
+
+Micro, Small, and Medium Enterprises (MSMEs) constitute over 90\% of businesses worldwide and are critical drivers of economic growth and employment. Despite their significance, MSMEs face disproportionately high failure rates, with fewer than 50\% surviving beyond their first five years of operation. A fundamental contributor to this failure rate is the lack of reliable, granular viability assessment tools available to both lending institutions and MSME operators.
+
+The current state of MSME viability assessment suffers from three critical shortcomings:
+
+\begin{enumerate}
+    \item \textbf{Binary Classification Limitation:} All existing machine learning models for MSME and credit risk assessment operate on a binary paradigm --- classifying enterprises as either ``default'' or ``non-default.'' This approach cannot distinguish between an enterprise that is on the verge of collapse and one that is merely experiencing temporary difficulties. Without graduated risk levels, lending institutions cannot design differential intervention strategies.
+
+    \item \textbf{Lack of Prescriptive Guidance:} While explainability techniques such as SHAP have been applied in financial ML contexts, they provide only diagnostic information --- explaining why a prediction was made. No existing MSME assessment system provides prescriptive guidance that tells a loan officer or business owner what specific changes would improve the viability classification.
+
+    \item \textbf{Absence of Integrated Systems:} The three capabilities of multi-class prediction, transparent explainability, and prescriptive recourse have never been combined in a single deployed system for MSME viability assessment. Previous work addresses each in isolation, leaving practitioners without a unified tool.
+\end{enumerate}
+
+\section{Research Objectives}
+
+Based on the identified gaps, the following objectives guide this project:
+
+\begin{enumerate}
+    \item \textbf{Design a five-class viability taxonomy} --- Develop a composite health score $H \in [0, 100]$ that transforms binary loan outcomes into a graduated five-class system (Critical, At-Risk, Stable, Growing, Thriving), enabling differential risk stratification.
+
+    \item \textbf{Train high-accuracy gradient boosting classifiers} --- Implement XGBoost and LightGBM on the SBA National dataset (899,164 records, 11 features) and achieve classification accuracy exceeding 90\% on the five-class task.
+
+    \item \textbf{Integrate per-prediction SHAP explainability} --- Deploy TreeSHAP to provide real-time, deterministic feature attribution for every prediction, identifying the top contributing factors in both risk-amplifying and risk-mitigating directions.
+
+    \item \textbf{Build a counterfactual recommendation engine} --- Implement a deterministic grid-search engine that recommends minimal, feasible feature changes to improve an enterprise's viability class by one level.
+
+    \item \textbf{Deploy as a production-ready system} --- Create a decoupled two-tier architecture (FastAPI backend + Streamlit frontend) with API key authentication, input validation, and persistent audit logging.
+\end{enumerate}
+
+\section{Expected Outcomes}
+
+\begin{itemize}
+    \item A trained and evaluated multi-class classification system with accuracy $>$ 90\%.
+    \item Per-prediction SHAP explanations with sub-millisecond latency.
+    \item A counterfactual recommendation engine with 100\% feasibility on evaluated cases.
+    \item A fully deployed web application demonstrating the end-to-end pipeline.
+    \item A published research paper documenting the methodology and results.
+\end{itemize}
+
+
+% ============================================================
+% CHAPTER 4: PROJECT ANALYSIS AND DESIGN
+% ============================================================
+\chapter{Project Analysis and Design}
+
+\section{Hardware and Software Requirement Specifications}
+
+\subsection{Hardware Requirements}
+
+\begin{table}[H]
+\centering
+\caption{Hardware requirements.}
+\begin{tabular}{ll}
+\hline
+\textbf{Component} & \textbf{Specification} \\
+\hline
+Processor & Intel Core i5 / AMD Ryzen 5 or above \\
+RAM & 8 GB minimum (16 GB recommended) \\
+Storage & 10 GB free disk space \\
+GPU & Not required (CPU-based training) \\
+Network & Internet connection (for API testing) \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Software Requirements}
+
+\begin{table}[H]
+\centering
+\caption{Software requirements.}
+\begin{tabular}{ll}
+\hline
+\textbf{Software} & \textbf{Version / Details} \\
+\hline
+Operating System & Windows 10+ / macOS / Linux \\
+Programming Language & Python 3.9+ \\
+IDE & VS Code / PyCharm / Jupyter Notebook \\
+Backend Framework & FastAPI 0.100+ \\
+Frontend Framework & Streamlit 1.28+ \\
+ML Libraries & scikit-learn 1.3+, XGBoost 2.0+, LightGBM 4.0+ \\
+Explainability & SHAP 0.42+ \\
+Data Processing & pandas 2.0+, NumPy 1.24+ \\
+Database & SQLite 3 (via SQLAlchemy 2.0+) \\
+Serialization & joblib \\
+Visualization & matplotlib, seaborn \\
+API Validation & Pydantic 2.0+ \\
+Web Server & Uvicorn \\
+Version Control & Git \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Use Case Diagrams and Flow Charts}
+
+\subsection{System Use Case Diagram}
+
+The MSME Viability Assessment System supports three primary actors: the \textbf{Loan Officer} (primary user), the \textbf{System Administrator}, and the \textbf{Batch Analyst}. Fig.~\ref{fig:usecase} illustrates the use case interactions.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{introduction_img.pdf}
+\caption{High-level system architecture and use case overview of the MSME Viability Assessment Framework.}
+\label{fig:usecase}
+\end{figure}
+
+The key use cases are:
+\begin{itemize}
+    \item \textbf{Single Assessment:} Enter 11 enterprise features $\rightarrow$ receive viability prediction + SHAP explanation + counterfactual recommendation.
+    \item \textbf{Batch Analysis:} Upload CSV of multiple enterprises $\rightarrow$ receive portfolio-level analysis.
+    \item \textbf{View History:} Access audit logs and historical predictions via analytics dashboard.
+    \item \textbf{API Integration:} External systems can call REST endpoints directly.
+\end{itemize}
+
+\subsection{System Flow Chart}
+
+The end-to-end data flow of the system follows these steps:
+
+\begin{enumerate}
+    \item \textbf{Input:} User enters 11 enterprise features via Streamlit UI or API call.
+    \item \textbf{Validation:} Pydantic validates all input ranges and types.
+    \item \textbf{Preprocessing:} Features are scaled using the cached StandardScaler.
+    \item \textbf{Prediction:} Scaled features pass through XGBoost/LightGBM classifier.
+    \item \textbf{Explainability:} TreeSHAP computes feature attributions for the predicted class.
+    \item \textbf{Recommendation:} Counterfactual engine searches for minimal feature changes.
+    \item \textbf{Logging:} Full prediction record is persisted to SQLite database.
+    \item \textbf{Output:} Results displayed to user (class, probabilities, SHAP chart, recommendations).
+\end{enumerate}
+
+\subsection{Activity Diagram}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{fig2_method.pdf}
+\caption{Activity diagram showing the counterfactual recommendation generation process.}
+\label{fig:activity}
+\end{figure}
+
+\section{System Architecture}
+
+The system follows a two-tier decoupled architecture:
+
+\begin{itemize}
+    \item \textbf{Tier 1 --- Backend (FastAPI):} Hosts the ML models, SHAP explainer, and counterfactual engine. Exposes five REST endpoints:
+    \begin{itemize}
+        \item \texttt{POST /predict} --- Single prediction with class probabilities
+        \item \texttt{POST /predict/batch} --- Batch CSV processing
+        \item \texttt{POST /explain} --- SHAP feature attribution
+        \item \texttt{POST /recommend} --- Counterfactual recommendation
+        \item \texttt{GET /health} --- Server health check
+    \end{itemize}
+    All endpoints are protected by API key authentication via \texttt{X-API-Key} header.
+
+    \item \textbf{Tier 2 --- Frontend (Streamlit):} Stateless web interface that communicates exclusively through the FastAPI endpoints. Provides three views: single assessment, batch processing, and historical analytics.
+\end{itemize}
+
+\section{Description of Software Components Used}
+
+\begin{itemize}
+    \item \textbf{XGBoost:} Gradient boosting framework with L1/L2 regularization, second-order Taylor approximation for leaf weights, and column subsampling. Used as primary classifier.
+
+    \item \textbf{LightGBM:} Gradient boosting with Gradient-based One-Side Sampling (GOSS) and Exclusive Feature Bundling (EFB) for efficient training on large datasets. Used as secondary classifier.
+
+    \item \textbf{TreeSHAP:} Polynomial-time algorithm for computing exact Shapley values for tree ensemble models, providing deterministic and consistent feature attribution.
+
+    \item \textbf{FastAPI:} Modern Python web framework with automatic OpenAPI documentation, async support, and native Pydantic integration for request/response validation.
+
+    \item \textbf{Streamlit:} Python library for building data-focused web applications rapidly, used for the user-facing dashboard.
+
+    \item \textbf{SQLAlchemy + SQLite:} ORM-based database interface for persistent audit logging of all predictions, explanations, and recommendations.
+\end{itemize}
+
+
+% ============================================================
+% CHAPTER 5: PROPOSED WORK AND METHODOLOGY
+% ============================================================
+\chapter{Proposed Work and Methodology Adopted}
+
+This chapter walks through the full pipeline of the MSME viability assessment system --- the data used, the five-class label construction, the models trained, SHAP explanations, the counterfactual recommendation logic, and the deployed architecture.
+
+\section{Dataset}
+
+For this study we used the U.S.\ Small Business Administration (SBA) National dataset compiled by Li et al. It has 899,164 loan records, all originated somewhere between 1987 and 2014. Each record originally came with 27 variables --- things like loan terms, how much was disbursed, borrower details, and most importantly the final loan outcome, which is stored in a field called \texttt{MIS\_Status} and is either ``Paid in Full'' or ``Charged Off.''
+
+We did not use all 27 variables. After going through the data and thinking about what actually matters for viability (rather than just what was available), we narrowed it down to 11 features. These fell naturally into four groups:
+
+\begin{itemize}
+    \item \textbf{Loan Structure:} \textit{Term} (loan duration in months, 0--480), \textit{DisbursementGross} (total disbursed amount), \textit{SBA\_Appv} (SBA-guaranteed portion), \textit{GrAppv} (gross approved amount).
+    \item \textbf{Enterprise Characteristics:} \textit{NoEmp} (number of employees, 0--10,000), \textit{NewExist} (1 = existing, 2 = new business), \textit{UrbanRural} (1 = urban, 2 = rural, 0 = undefined).
+    \item \textbf{Employment Impact:} \textit{CreateJob} (planned new jobs), \textit{RetainedJob} (existing positions retained).
+    \item \textbf{Loan Program Flags:} \textit{RevLineCr} (revolving line of credit), \textit{LowDoc} (low-documentation program).
+\end{itemize}
+
+We split the data 80/20 in a stratified fashion, which gave us 720,779 records for training and 178,385 for testing. Continuous features were standardized with \texttt{StandardScaler} from scikit-learn. One thing we were careful about here --- the scaler was fitted only on training data and then applied to both splits, not fitted on the full dataset. That prevents the test set from leaking information back into preprocessing.
+
+Because financial datasets almost always have imbalanced classes (far more loans get paid off than charged off), we applied SMOTE on the training set. This creates synthetic examples of the smaller classes so the models do not just learn to predict the majority class and call it a day.
+
+\section{Five-Class Health Taxonomy}
+
+This is probably the most important methodological decision in the project. Instead of treating loan outcome as a binary variable (which is what every other study does), we constructed a composite health score that captures more nuance about each enterprise.
+
+The idea is straightforward. A business that defaulted on a tiny 12-month loan with zero employees is clearly in worse shape than a business that also defaulted but had a 10-year term, created 30 jobs, and was approved for \$400,000. Binary classification treats both of these as the same ``failure'' --- our taxonomy does not.
+
+We compute a health score $H$ for every record. $H$ is a number between 0 and 100 and it is the sum of four components:
+
+\begin{equation}
+H = S_{\text{outcome}} + S_{\text{term}} + S_{\text{job}} + S_{\text{loan}}
+\end{equation}
+
+\begin{itemize}
+    \item $S_{\text{outcome}}$ (40 points): Full marks for loans paid in full, zero for charged off.
+    \item $S_{\text{term}}$ (20 points): $S_{\text{term}} = \min(\text{Term}, 240) / 240 \times 20$
+    \item $S_{\text{job}}$ (20 points): $S_{\text{job}} = \min(\text{CreateJob} + \text{RetainedJob}, 50) / 50 \times 20$
+    \item $S_{\text{loan}}$ (20 points): $S_{\text{loan}} = \min(\text{GrAppv}, 500000) / 500000 \times 20$
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{fig1_method.pdf}
+\caption{Composite health score construction showing the four component scores and five-class discretization.}
+\label{fig:health_score_report}
+\end{figure}
+
+Once every record has its health score, we bin them into five classes:
+
+\begin{table}[H]
+\centering
+\caption{Five-class viability taxonomy.}
+\label{tab:health_taxonomy_report}
+\begin{tabular}{lll}
+\hline
+\textbf{Health Score Range} & \textbf{Class Label} & \textbf{Interpretation} \\
+\hline
+$[0, 25)$    & Critical (0) & Defaulted, short term, low employment, small loan \\
+$[25, 40)$   & At-Risk (1)  & Defaulted but with some positive indicators \\
+$[40, 60)$   & Stable (2)   & Performing loan with moderate features \\
+$[60, 75)$   & Growing (3)  & Performing loan with strong employment and size \\
+$[75, 100]$  & Thriving (4) & High-performing on all dimensions \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Model Architectures}
+
+We went with two gradient boosting frameworks for our primary classifiers --- XGBoost and LightGBM. We did train a Random Forest too, mostly to have something to compare against, but it never made it into the final deployed system.
+
+\subsection{XGBoost}
+
+XGBoost builds its ensemble sequentially, where each new tree corrects the errors of the previous ones. Its loss function has an explicit regularization term:
+
+\begin{equation}
+\text{Obj} = \sum_{i} L(y_i, \hat{y}_i) + \sum_{k} \Omega(f_k)
+\end{equation}
+
+where $\Omega(f_k) = \gamma T + \tfrac{1}{2}\lambda \|w\|^2$ penalizes tree complexity through leaf count ($T$) and weight magnitude ($w$). XGBoost takes a second-order Taylor approximation of the loss to determine optimal leaf weights analytically.
+
+\subsection{LightGBM}
+
+LightGBM was designed to handle bigger datasets without the training time penalty. It introduced two innovations:
+\begin{itemize}
+    \item \textbf{GOSS (Gradient-based One-Side Sampling):} Keeps all samples with large gradients while only taking a random subset of easy samples, cutting training time significantly.
+    \item \textbf{EFB (Exclusive Feature Bundling):} Groups features that are rarely active simultaneously, reducing the effective feature count during tree construction.
+\end{itemize}
+
+Together, GOSS and EFB can speed up training by as much as 20$\times$ on standard benchmarks with essentially unchanged accuracy.
+
+\section{SHAP-Based Explainability}
+
+From the beginning we were committed to the idea that no prediction should leave the system without an explanation attached. TreeSHAP was our tool of choice for two reasons:
+\begin{itemize}
+    \item \textbf{Stability:} TreeSHAP produces exact, deterministic Shapley values, unlike LIME's stochastic perturbation-based approach.
+    \item \textbf{Speed:} TreeSHAP exploits tree structure for polynomial-time computation, enabling sub-millisecond explanations.
+\end{itemize}
+
+The \texttt{shap.TreeExplainer} object is built once at server startup and cached as a singleton. For each prediction, SHAP values for the predicted class are sorted by absolute magnitude, and the top three risk-amplifying and risk-mitigating features are returned.
+
+\section{Counterfactual Recommendation Engine}
+
+The counterfactual engine was built based on concepts from DiCE and the algorithmic recourse literature. We went with a deterministic grid-search approach instead of stochastic optimization to guarantee reproducibility in financial contexts.
+
+Of the 11 features, six are designated mutable (\textit{Term}, \textit{DisbursementGross}, \textit{SBA\_Appv}, \textit{GrAppv}, \textit{CreateJob}, \textit{RetainedJob}) and five are locked as immutable.
+
+The search process has two phases:
+\begin{itemize}
+    \item \textbf{Phase 1:} Tests single-feature perturbations using predefined grids. Selects the minimum-displacement change that achieves the target class.
+    \item \textbf{Phase 2:} Triggered only if Phase 1 fails. Tests pairwise combinations from a reduced grid.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{fig2_method.pdf}
+\caption{Counterfactual recommendation algorithm flowchart.}
+\label{fig:cf_flow_report}
+\end{figure}
+
+\section{System Deployment}
+
+The system follows a two-tier decoupled architecture. The backend (FastAPI) exposes five REST endpoints with API key authentication and Pydantic input validation. Every prediction is logged to a SQLite database for audit compliance. The frontend (Streamlit) is a stateless client that communicates exclusively through the API.
+
+
+% ============================================================
+% CHAPTER 6: RESULTS AND DISCUSSION
+% ============================================================
+\chapter{Results and Discussion}
+
+\section{Overall Classification Performance}
+
+\begin{table}[H]
+\centering
+\caption{Overall model performance comparison on test set ($n = 178{,}385$).}
+\label{tab:overall_report}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Model} & \textbf{Accuracy} & \textbf{Weighted F1} & \textbf{Macro F1} & \textbf{AUC (macro)} & \textbf{AUC (weighted)} \\
+\hline
+Naive baseline & 53.31\% & --- & --- & --- & --- \\
+Logistic Regression & 77.67\% & --- & --- & --- & --- \\
+\textbf{XGBoost} & \textbf{92.78\%} & \textbf{0.93} & \textbf{0.84} & \textbf{0.9864} & \textbf{0.9857} \\
+\textbf{LightGBM} & \textbf{92.98\%} & \textbf{0.93} & \textbf{0.85} & \textbf{0.9870} & \textbf{0.9859} \\
+\hline
+\end{tabular}
+\end{table}
+
+The accuracy of both gradient boosting techniques is above 92\% for the five-class classification problem, with LightGBM slightly outperforming XGBoost by 0.20\%. Both models exhibit macro AUC higher than 0.986, which suggests a high level of class separation amongst all five classes. Importantly, both models significantly outperform the naive baseline (53.31\%) and Logistic Regression (77.67\%).
+
+\section{Per-Class Analysis}
+
+\begin{table}[H]
+\centering
+\caption{XGBoost per-class classification report.}
+\label{tab:xgb_class_report}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{Support} & \textbf{\% of Test} \\
+\hline
+Critical (0) & 0.84 & 0.80 & 0.82 & 28,909 & 16.21\% \\
+At-Risk (1) & 0.69 & 0.40 & 0.51 & 2,197 & 1.23\% \\
+Stable (2) & 0.94 & 0.95 & 0.95 & 95,100 & 53.31\% \\
+Growing (3) & 0.94 & 0.98 & 0.96 & 31,070 & 17.42\% \\
+Thriving (4) & 0.96 & 0.99 & 0.97 & 21,109 & 11.83\% \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{LightGBM per-class classification report.}
+\label{tab:lgbm_class_report}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{Support} & \textbf{\% of Test} \\
+\hline
+Critical (0) & 0.85 & 0.81 & 0.83 & 28,909 & 16.21\% \\
+At-Risk (1) & 0.68 & 0.43 & 0.53 & 2,197 & 1.23\% \\
+Stable (2) & 0.95 & 0.95 & 0.95 & 95,100 & 53.31\% \\
+Growing (3) & 0.94 & 0.97 & 0.96 & 31,070 & 17.42\% \\
+Thriving (4) & 0.96 & 0.99 & 0.97 & 21,109 & 11.83\% \\
+\hline
+\end{tabular}
+\end{table}
+
+Stable, Growing, and Thriving classes together make up 82.56\% of the test data and show good classification results (F1 $\geq$ 0.95). Critical class shows solid performance (F1 = 0.82--0.83) with primary confusion at the Critical--Stable boundary. At-Risk is the weakest class (F1 = 0.51--0.53) due to extreme rarity (1.23\%) and narrow score range.
+
+\section{SHAP Feature Attribution Analysis}
+
+\begin{table}[H]
+\centering
+\caption{Global feature importance (average $|\text{SHAP}|$ on 1,000 samples).}
+\label{tab:shap_global_report}
+\begin{tabular}{clcc}
+\hline
+\textbf{Rank} & \textbf{Feature} & \textbf{Mean $|\text{SHAP}|$} & \textbf{Category} \\
+\hline
+1 & GrAppv & 1.5191 & Loan Structure \\
+2 & Term & 1.4523 & Loan Structure \\
+3 & RetainedJob & 0.6152 & Employment Impact \\
+4 & SBA\_Appv & 0.4927 & Loan Structure \\
+5 & CreateJob & 0.3778 & Employment Impact \\
+6 & DisbursementGross & 0.1547 & Loan Structure \\
+7 & NoEmp & 0.0611 & Enterprise Characteristics \\
+8 & UrbanRural & 0.0471 & Enterprise Characteristics \\
+9 & RevLineCr & 0.0399 & Loan Program \\
+10 & NewExist & 0.0219 & Enterprise Characteristics \\
+11 & LowDoc & 0.0124 & Loan Program \\
+\hline
+\end{tabular}
+\end{table}
+
+\textit{GrAppv} (gross approved amount) and \textit{Term} (loan duration) have a much larger SHAP contribution than all other features combined, with mean absolute SHAP values of 1.52 and 1.45 respectively. Employment features rank third (\textit{RetainedJob} = 0.62), while loan program attributes contribute minimally.
+
+\section{Counterfactual Engine Evaluation}
+
+\begin{table}[H]
+\centering
+\caption{Counterfactual engine performance ($n = 200$).}
+\label{tab:cf_eval_report}
+\begin{tabular}{lcc}
+\hline
+\textbf{Metric} & \textbf{Critical $\rightarrow$ At-Risk} & \textbf{At-Risk $\rightarrow$ Stable} \\
+\hline
+Sample size & 100 & 100 \\
+Feasibility rate & 100\% & 100\% \\
+Phase 1 (single-feature) & 82\% & 41\% \\
+Phase 2 (pairwise) & 0\% & 0\% \\
+Already at/above target & 18\% & 59\% \\
+Most recommended feature & Term (100\%) & Term (100\%) \\
+Mean prediction latency & 0.99ms & 0.99ms \\
+Mean CF latency & 2.03ms & 2.03ms \\
+\hline
+\end{tabular}
+\end{table}
+
+The engine achieves 100\% feasibility in both transition types. 82\% of Critical transitions are handled through single-feature changes. Term is the most recommended feature in 100\% of cases, showing strong consistency with SHAP analysis.
+
+\section{Discussion}
+
+It was found in the experiments conducted that the developed framework managed to accomplish three things at once: multi-class viability prediction with high accuracy, per-prediction explainability, and prescriptive advice. As far as we know, the developed system is the first one that can achieve all three goals at the same time in the MSME assessment domain.
+
+The dominance of \textit{GrAppv} and \textit{Term} in the SHAP analysis has significant policy implications --- the extent to which institutions are willing to invest in an enterprise serves as the best indicator of its viability path. The consistency between risk factors detected by SHAP and counterfactual recommendations acts as a system-wide validation, confirming that both modules generate mutually consistent results.
+
+The framework also aligns with evolving regulatory requirements. Wachter et al.\ argue that GDPR's right to explanation entails the right to counterfactuals. Our system addresses both: SHAP provides contrastive explanations, counterfactuals provide consequential explanations, and persistent logging ensures auditability.
+
+\subsection{Limitations}
+
+\begin{enumerate}
+    \item The framework was trained exclusively on U.S.\ SBA data; cross-national applicability is unknown.
+    \item The health score weights (40/20/20/20) are researcher-defined rather than learned.
+    \item At-Risk classification remains weak (F1 = 0.51--0.53) due to extreme rarity and narrow score range.
+    \item The counterfactual engine uses a deterministic grid search rather than continuous optimization.
+    \item The dataset is cross-sectional and does not capture time-dependent viability changes.
+    \item The system has not been empirically evaluated with finance industry practitioners.
+    \item The health taxonomy is grounded in historical loan repayment outcomes, not independent viability indicators.
+\end{enumerate}
+
+
+% ============================================================
+% CHAPTER 7: CONCLUSION
+% ============================================================
+\chapter{Conclusion}
+
+This project presents an integrated AI-based framework for MSME viability assessment that advances the state of practice across three dimensions: multi-class prediction, transparent explainability, and prescriptive intervention guidance.
+
+The framework introduces a five-class health taxonomy (Critical, At-Risk, Stable, Growing, Thriving) that transcends the binary classification paradigm dominant in existing MSME and credit risk assessment literature. Trained on 899,164 U.S.\ SBA loan records using XGBoost and LightGBM as primary prediction engines, the system achieves overall accuracies of 92.78\% and 92.98\% respectively, with macro AUC exceeding 0.986, substantially outperforming both naive baselines (53.31\%) and traditional Logistic Regression (77.67\%) on the five-class task.
+
+The integration of SHAP-based explainability provides per-prediction feature attribution that renders each viability assessment transparent and auditable. Global SHAP analysis identifies the gross approved amount and loan term as the dominant viability predictors, providing actionable insight for lending policy.
+
+The counterfactual recommendation engine extends the system from diagnostic prediction to prescriptive decision support. The engine achieves 100\% feasibility across 200 evaluated instances, resolving 82\% of Critical-class transitions through single-feature changes with a mean generation latency of 2.03 milliseconds --- demonstrating both the effectiveness and the real-time operational viability of the prescriptive approach.
+
+The complete framework is deployed as an enterprise-grade decoupled architecture with persistent audit logging, addressing the production deployment challenges documented in the machine learning systems literature. By combining graduated risk stratification, transparent explainability, and actionable prescriptions within a single operational system, the proposed framework offers a methodological contribution toward more accurate, transparent, and actionable MSME viability assessment.
+
+
+% ============================================================
+% CHAPTER 8: FUTURE SCOPE OF WORK
+% ============================================================
+\chapter{Future Scope of Work}
+
+Based on the results and limitations of the current study, the following directions for future work can be identified:
+
+\section{Cross-Country Validation}
+One obvious direction would be validation of the framework on MSME datasets from emerging countries, such as India, Southeast Asia, and Sub-Saharan Africa, where the gap between supply and demand is the greatest. This task would involve modification of the input features according to the nature of lending instruments used in emerging countries.
+
+\section{Learnable Health Score Parameterization}
+The current parameterization with fixed component weights (40/20/20/20) can be substituted with a learnable one, where the weights themselves are learned jointly with the classification target. In this way, the taxonomy could adapt to the needs of specific institutions.
+
+\section{Improvement of At-Risk Class Performance}
+Minority-class issues found in the At-Risk class can be tackled by employing focal loss functions, which penalize correctly classified samples less while emphasizing learning on challenging cases, or by means of cost-sensitive algorithms. A hierarchical classification approach distinguishing default and non-default classes initially and then splitting into sub-classes might benefit from the intrinsic hierarchy of health scores.
+
+\section{Feature Enhancement}
+The 11 features used currently are limited to the SBA database. External data sources such as credit bureau data, economic indicators, and industry benchmarks can be incorporated to improve generalization capability.
+
+\section{Longitudinal Analysis}
+Incorporating time-series data would enable the framework to analyze time-dependent changes in enterprise viability and incorporate macroeconomic factors, seasonality, and business lifecycle effects.
+
+\section{Practitioner Validation}
+Systematic user studies involving loan officers, credit analysts, and MSME development practitioners will help validate the practical value of SHAP explanations and counterfactual recommendations in real-world decision-making scenarios.
+
+
+% ============================================================
+% REFERENCES
+% ============================================================
+\begin{thebibliography}{28}
+
+\bibitem{b1} W.~H.~Beaver, ``Financial ratios as predictors of failure,'' \textit{Journal of Accounting Research}, vol.~4, pp.~71--111, 1966.
+
+\bibitem{b2} E.~I.~Altman, ``Financial ratios, discriminant analysis and the prediction of corporate bankruptcy,'' \textit{The Journal of Finance}, vol.~23, no.~4, pp.~589--609, 1968.
+
+\bibitem{b3} J.~A.~Ohlson, ``Financial ratios and the probabilistic prediction of bankruptcy,'' \textit{Journal of Accounting Research}, vol.~18, no.~1, pp.~109--131, 1980.
+
+\bibitem{b4} E.~I.~Altman, M.~Iwanicz-Drozdowska, E.~K.~Laitinen, and A.~Suvas, ``Financial distress prediction in an international context: A review and empirical analysis of Altman's Z-Score model,'' \textit{Journal of International Financial Management \& Accounting}, vol.~28, no.~2, pp.~131--171, 2017.
+
+\bibitem{b5} F.~Barboza, H.~Kimura, and E.~Altman, ``Machine learning models and bankruptcy prediction,'' \textit{Expert Systems with Applications}, vol.~83, pp.~405--417, 2017.
+
+\bibitem{b6} IFC, ``MSME finance gap: Assessment of the shortfalls and opportunities in financing micro, small, and medium enterprises in emerging markets,'' International Finance Corporation, Washington, DC, 2017.
+
+\bibitem{b7} World Bank, ``Small and medium enterprises (SMEs) finance,'' World Bank Group, 2021.
+
+\bibitem{b8} M.~Li, A.~Mickel, and S.~Taylor, ``Should this loan be approved or denied? A large dataset with class assignment guidelines,'' \textit{Journal of Statistics Education}, vol.~26, no.~1, pp.~55--66, 2018.
+
+\bibitem{b9} L.~Breiman, ``Random forests,'' \textit{Machine Learning}, vol.~45, no.~1, pp.~5--32, 2001.
+
+\bibitem{b10} T.~Chen and C.~Guestrin, ``XGBoost: A scalable tree boosting system,'' in \textit{Proc.\ ACM SIGKDD International Conference on Knowledge Discovery and Data Mining}, 2016, pp.~785--794.
+
+\bibitem{b11} G.~Ke \textit{et al.}, ``LightGBM: A highly efficient gradient boosting decision tree,'' in \textit{Advances in Neural Information Processing Systems}, 2017, pp.~3146--3154.
+
+\bibitem{b12} N.~V.~Chawla, K.~W.~Bowyer, L.~O.~Hall, and W.~P.~Kegelmeyer, ``SMOTE: Synthetic minority over-sampling technique,'' \textit{Journal of Artificial Intelligence Research}, vol.~16, pp.~321--357, 2002.
+
+\bibitem{b13} Y.~Xia, C.~Liu, Y.~Li, and N.~Liu, ``A boosted decision tree approach using Bayesian hyper-parameter optimization for credit scoring,'' \textit{Expert Systems with Applications}, vol.~78, pp.~225--241, 2017.
+
+\bibitem{b14} G.~Wang, J.~Ma, L.~Huang, and K.~Xu, ``Two credit scoring models based on dual strategy ensemble trees,'' \textit{Knowledge-Based Systems}, vol.~26, pp.~61--68, 2012.
+
+\bibitem{b15} J.~H.~Min and Y.-C.~Lee, ``Bankruptcy prediction using support vector machine with optimal choice of kernel function parameters,'' \textit{Expert Systems with Applications}, vol.~28, no.~4, pp.~603--614, 2005.
+
+\bibitem{b16} M.~T.~Ribeiro, S.~Singh, and C.~Guestrin, ``Why should I trust you? Explaining the predictions of any classifier,'' in \textit{Proc.\ ACM SIGKDD}, 2016, pp.~1135--1144.
+
+\bibitem{b17} S.~M.~Lundberg and S.-I.~Lee, ``A unified approach to interpreting model predictions,'' in \textit{Advances in Neural Information Processing Systems}, 2017, pp.~4765--4774.
+
+\bibitem{b18} S.~M.~Lundberg \textit{et al.}, ``From local explanations to global understanding with explainable AI for trees,'' \textit{Nature Machine Intelligence}, vol.~2, no.~1, pp.~56--67, 2020.
+
+\bibitem{b19} S.~Wachter, B.~Mittelstadt, and C.~Russell, ``Counterfactual explanations without opening the black box: Automated decisions and the GDPR,'' \textit{Harvard Journal of Law \& Technology}, vol.~31, no.~2, pp.~841--887, 2018.
+
+\bibitem{b20} R.~K.~Mothilal, A.~Sharma, and C.~Tan, ``Explaining machine learning classifiers through diverse counterfactual explanations,'' in \textit{Proc.\ ACM Conference on Fairness, Accountability, and Transparency}, 2020, pp.~607--617.
+
+\bibitem{b21} A.-H.~Karimi, G.~Barthe, B.~Balle, and I.~Valera, ``A survey of algorithmic recourse: Contrastive explanations and consequential recommendations,'' \textit{ACM Computing Surveys}, vol.~55, no.~5, pp.~1--29, 2023.
+
+\bibitem{b22} M.~J.~Ariza-Garz\'{o}n, J.~Arroyo, A.~Caparrini, and M.-J.~Segovia-Vargas, ``Explainability of a machine learning granting scoring model in peer-to-peer lending,'' \textit{IEEE Access}, vol.~8, pp.~64873--64890, 2020.
+
+\bibitem{b23} N.~Bussmann, P.~Giudici, D.~Marinelli, and J.~Papenbrock, ``Explainable machine learning in credit risk management,'' \textit{Computational Economics}, vol.~57, no.~1, pp.~203--216, 2021.
+
+\bibitem{b24} M.~B\"{u}cker, G.~Szepannek, A.~Gosiewska, and P.~Biecek, ``Transparency, auditability, and explainability of machine learning models in credit scoring,'' \textit{Journal of the Operational Research Society}, vol.~73, no.~1, pp.~70--90, 2022.
+
+\bibitem{b25} J.~Li and J.~Sun, ``An improved feature selection approach for business failure prediction,'' \textit{Knowledge-Based Systems}, vol.~70, pp.~41--56, 2014.
+
+\bibitem{b26} D.~Sculley \textit{et al.}, ``Hidden technical debt in machine learning systems,'' in \textit{Advances in Neural Information Processing Systems}, 2015, pp.~2503--2511.
+
+\bibitem{b27} A.~Paleyes, R.-G.~Urma, and N.~D.~Lawrence, ``Challenges in deploying machine learning: A survey of case studies,'' \textit{ACM Computing Surveys}, vol.~55, no.~6, pp.~1--29, 2022.
+
+\end{thebibliography}
+
+
+% ============================================================
+% APPENDIX
+% ============================================================
+\appendix
+\chapter{Published Paper}
+% Attach your IEEE conference paper here
+The IEEE conference paper based on this project work is attached separately.
+
+\chapter{Source Code}
+% Add key code snippets here
+Key source code files for the project:
+
+\section{FastAPI Backend (app.py)}
+\begin{lstlisting}[language=Python]
+# Prediction endpoint
+@app.post("/predict")
+async def predict(request: PredictionRequest,
+                  api_key: str = Depends(verify_api_key)):
+    features = prepare_features(request)
+    scaled = scaler.transform(features)
+    prediction = model.predict(scaled)
+    probabilities = model.predict_proba(scaled)
+    # Log to database
+    log_prediction(request, prediction, probabilities)
+    return {"class": int(prediction[0]),
+            "probabilities": probabilities[0].tolist()}
+\end{lstlisting}
+
+\section{Counterfactual Engine (counterfactual.py)}
+\begin{lstlisting}[language=Python]
+# Phase 1: Single-feature perturbation
+def find_counterfactual(features, target_class):
+    for feature in MUTABLE_FEATURES:
+        for delta in PERTURBATION_GRID[feature]:
+            modified = features.copy()
+            modified[feature] += delta
+            pred = model.predict(scaler.transform(modified))
+            if pred == target_class:
+                return modified, feature, delta
+    return None  # Proceed to Phase 2
+\end{lstlisting}
+
+\end{document}
