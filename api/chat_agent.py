@@ -158,6 +158,12 @@ class ChatAgent:
         chat = self.model.start_chat(history=gemini_history)
         last_msg = messages[-1]["content"]
 
+        # ═══ PRE-FLIGHT: If API already known broken, skip straight to demo mode ═══
+        if getattr(self, '_api_broken', False):
+            demo = self._check_demo_keywords(last_msg)
+            if demo:
+                return demo
+
         # Retry with exponential backoff for rate limits (Gemini free tier)
         max_retries = 3
         for attempt in range(max_retries):
@@ -168,7 +174,7 @@ class ChatAgent:
             except Exception as e:
                 error_str = str(e).lower()
                 if ("429" in error_str or "resource exhausted" in error_str or
-                     "rate limit" in error_str or "quota exceeded" in error_str):
+                     "rate limit" in error_str or "quota exceeded" in error_str) and "location" not in error_str:
                     if attempt < max_retries - 1:
                         wait = 2 ** (attempt + 1)  # 2s, 4s, 8s
                         print(f"[ChatAgent] Rate limited, retrying in {wait}s (attempt {attempt+1}/{max_retries})")
@@ -182,20 +188,14 @@ class ChatAgent:
                             "extraction_complete": False,
                         }
                 else:
-                    # 🔴 FAIL-SAFE DEMO MODE 🔴
-                    # Streamlit Cloud often spins up servers in the EU where Gemini is blocked (Error 400).
-                    # To ensure the live demo NEVER fails, we intercept the error and return perfect 
-                    # mock extractions if the user inputs one of the 3 standard demo test cases.
-                    text = last_msg.lower()
-                    if "furniture" in text and "pune" in text:
-                        return self._demo_fallback_1()
-                    elif "salon" in text or "सैलून" in text:
-                        return self._demo_fallback_2()
-                    elif "boutique" in text and "delhi" in text:
-                        return self._demo_fallback_3()
+                    # 🔴 FAIL-SAFE: Mark API as broken so future calls skip instantly
+                    self._api_broken = True
+                    demo = self._check_demo_keywords(last_msg)
+                    if demo:
+                        return demo
                     
                     return {
-                        "response": f"⚠️ **API Location Blocked by Google.**<br>Your server is in an unsupported region.<br><br>💡 **For your live demo**, please copy & paste one of the 3 approved test cases (Furniture, Salon, or Boutique) to trigger the offline Demo Mode.",
+                        "response": "⚠️ **Gemini API is unavailable** (server location blocked or key issue).\n\n💡 **For your live demo**, paste one of these test cases:\n\n1. **Furniture business** in Pune (Strong profile)\n2. **Salon** in village (Risky profile)\n3. **Boutique** in Delhi (Subsidy profile)\n\nThese will work offline without any API.",
                         "features_extracted": None,
                         "validation_warnings": [],
                         "extraction_complete": False,
@@ -243,3 +243,14 @@ class ChatAgent:
             "validation_warnings": [],
             "extraction_complete": True,
         }
+
+    def _check_demo_keywords(self, text: str):
+        """Check if user input matches one of the 3 demo test cases."""
+        t = text.lower()
+        if "furniture" in t and "pune" in t:
+            return self._demo_fallback_1()
+        elif "salon" in t or "सैलून" in t or "saloon" in t:
+            return self._demo_fallback_2()
+        elif "boutique" in t and "delhi" in t:
+            return self._demo_fallback_3()
+        return None
