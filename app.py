@@ -538,6 +538,27 @@ def render_report_card(features: dict):
             c1.success(f"**Strengths:** {', '.join(shap_data['top_negative_features']) or 'None'}")
             c2.error(f"**Risk Factors:** {', '.join(shap_data['top_positive_features']) or 'None'}")
 
+    # ── PDF Report Download ──
+    st.markdown("---")
+    st.markdown("### 📥 Download Detailed Report")
+    st.caption("Get a professional 10+ page PDF with all analysis, charts, and recommendations — shareable with banks and investors.")
+    if st.button("📄 Generate & Download PDF Report", type="primary", use_container_width=True):
+        with st.spinner("📊 Generating detailed PDF report with charts..."):
+            try:
+                url = f"{API_BASE}/report"
+                r = requests.post(url, headers=HEADERS, json=features, timeout=120)
+                r.raise_for_status()
+                st.download_button(
+                    label="⬇️ Click to Save PDF",
+                    data=r.content,
+                    file_name="MSME_Loan_Readiness_Report.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                )
+                st.success("✅ Report generated! Click the button above to save.")
+            except Exception as e:
+                st.error(f"Could not generate report: {e}")
+
     # Reset
     st.markdown("---")
     if st.button("🔄 Start New Assessment", type="primary", use_container_width=True):
@@ -545,6 +566,7 @@ def render_report_card(features: dict):
         st.session_state.extracted_features = None
         st.session_state.assessment_done = False
         st.rerun()
+
 
 
 # ═══════════════════════════════════════════

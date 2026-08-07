@@ -1,0 +1,35 @@
+# Development dependencies (not needed for production deployment)
+# Install with: pip install -r requirements-dev.txt
+
+# Testing
+pytest>=8.0
+pytest-asyncio>=0.23
+httpx>=0.27          # For FastAPI TestClient
+
+# Code quality
+ruff>=0.4            # Fast Python linter
+black>=24.0          # Code formatter
+mypy>=1.10           # Type checking
+
+# Jupyter
+jupyterlab>=4.0
+ipykernel>=6.0
+
+# Notebook dependencies (for running the training notebook locally)
+scikit-learn>=1.5
+xgboost>=2.0
+lightgbm>=4.0
+catboost>=1.2        # Used in notebook comparison (not deployed)
+shap>=0.45
+dice-ml>=0.11        # Counterfactual generation (notebook only)
+seaborn>=0.13
+matplotlib>=3.8
+pandas>=2.0
+numpy>=1.26
+joblib>=1.3
+
+# PDF generation (used by /report endpoint)
+fpdf2>=2.7
+
+# Report tools
+Pillow>=10.0

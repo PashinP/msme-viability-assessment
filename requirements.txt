@@ -1,9 +1,17 @@
+# ─── MSME Viability Assessment — Production Dependencies ─────────────────────
+# Install with: pip install -r requirements.txt
+
+# ─── Web Framework ────────────────────────────────────────────────────────────
 fastapi==0.122.0
 uvicorn==0.38.0
-sqlalchemy>=2.0
-pydantic>=2.0
-python-multipart>=0.0.9
+python-multipart>=0.0.9     # multipart/form-data (CSV batch upload)
 python-dotenv>=1.0
+
+# ─── Data Validation ─────────────────────────────────────────────────────────
+pydantic>=2.0
+sqlalchemy>=2.0
+
+# ─── Machine Learning ────────────────────────────────────────────────────────
 scikit-learn>=1.5
 xgboost>=2.0
 lightgbm>=4.0
@@ -11,7 +19,16 @@ shap>=0.45
 numpy>=1.26
 pandas>=2.0
 joblib>=1.3
-requests>=2.31
-streamlit>=1.30
-matplotlib>=3.8
+
+# ─── LLM Providers ───────────────────────────────────────────────────────────
 google-generativeai>=0.5
+requests>=2.31              # Groq HTTP calls + Streamlit API calls
+
+# ─── Frontend ────────────────────────────────────────────────────────────────
+streamlit>=1.30
+plotly>=5.20                # Interactive charts (replaces static matplotlib)
+matplotlib>=3.8             # Still used for some static charts
+
+# ─── PDF Report Generation ───────────────────────────────────────────────────
+fpdf2>=2.7
+Pillow>=10.0

@@ -1,42 +1,82 @@
-# Data files
+# ─── Data ────────────────────────────────────────────────────────────────────
 SBAnational.csv
 *.csv
 
-# Large model files (only deploy XGBoost + LightGBM)
+# Large binary data files (rebuild with scripts/build_similarity_index.py)
+data/sba_knn.pkl
+data/sba_features.pkl
+
+# ─── Large ML Models (only XGBoost + LightGBM are deployed) ─────────────────
 models/rf_mc.pkl
 models/stack_mc.pkl
 
-# Python
+# ─── Python ──────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
 *.egg-info/
 *.egg
+.eggs/
 dist/
 build/
-.eggs/
-
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb
-
-# CatBoost
-catboost_info/
-
-# Environment
-.env
 venv/
 env/
+.venv/
+*.so
 
-# SQLite DB (recreated on deploy)
+# ─── Jupyter ─────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+# Note: notebooks/*.ipynb ARE tracked intentionally
+
+# ─── ML Training Artifacts ───────────────────────────────────────────────────
+catboost_info/
+visualizations/
+mlruns/
+
+# ─── Environment & Secrets ───────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ─── Database (recreated on deploy) ──────────────────────────────────────────
 *.db
+*.sqlite3
 
-# OS
+# ─── OS ──────────────────────────────────────────────────────────────────────
 .DS_Store
+.DS_Store?
+._*
 Thumbs.db
+ehthumbs.db
 
-# IDE
+# ─── IDE ─────────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# Visualizations (notebook outputs)
-visualizations/
+# ─── Frontend (Node) ─────────────────────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.env.local
+.next/
+
+# ─── Academic / Report Artifacts (local only, not source code) ───────────────
+*.tex
+*.docx
+*.pptx
+*.pdf
+appendix_*/
+claude_project_*.md
+portfolio_summary.md
+report_diagrams.md
+*_humanized.md
+generate_paper_metrics.py
+gen_ppt.py
+
+# ─── Test / scratch scripts ───────────────────────────────────────────────────
+test_*.py
+*_key.py
+scratch_*.py
