@@ -661,3 +661,7 @@ class ChatAgent:
         elif "boutique" in t and "delhi" in t:
             return self._demo_fallback_3()
         return None
+
+
+def get_chat_agent():
+    return ConversationalAgent()

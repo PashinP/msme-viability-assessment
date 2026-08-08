@@ -153,7 +153,7 @@ class HorizontalBar(Flowable):
     def __init__(self, value, max_val=10, width=200, height=10,
                  fill_color=ACCENT, bg_color=G200, show_label=True):
         super().__init__()
-        self.value = min(value, max_val)
+        self.value = min(value or 0, max_val)
         self.max_val = max_val
         self.width = width
         self.height = height

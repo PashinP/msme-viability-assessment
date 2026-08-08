@@ -116,3 +116,7 @@ class SimilarBusinessEngine:
             "insight": insight,
             "dataset_size": self.total_records,
         }
+
+
+def get_similar_engine():
+    return SimilarBusinessEngine()

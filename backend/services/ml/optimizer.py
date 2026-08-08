@@ -347,3 +347,7 @@ class LoanOptimizer:
             "term_analysis": term_data,
             "amount_analysis": amount_data,
         }
+
+def get_loan_optimizer():
+    from backend.services.ml.engine import get_prediction_engine
+    return LoanOptimizer(get_prediction_engine())
