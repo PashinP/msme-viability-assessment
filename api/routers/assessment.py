@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from backend.schemas.assessment import AssessmentRequest
-from backend.api.dependencies import get_db, verify_api_key
-from backend.services.ml.engine import get_prediction_engine
-from backend.services.ml.scoring import generate_readiness_assessment
-from backend.services.ml.prescription import generate_prescriptions
-from backend.services.ml.optimizer import match_government_schemes
-from backend.models.prediction import PredictionRecord
+from api.schemas.assessment import AssessmentRequest
+from api.dependencies import get_db, verify_api_key
+from api.services.ml.engine import get_prediction_engine
+from api.services.ml.scoring import generate_readiness_assessment
+from api.services.ml.prescription import generate_prescriptions
+from api.services.ml.optimizer import match_government_schemes
+from api.models.prediction import PredictionRecord
 
 router = APIRouter()
 

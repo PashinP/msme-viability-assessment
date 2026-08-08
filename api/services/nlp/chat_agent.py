@@ -35,7 +35,7 @@ try:
 except ImportError:
     HAS_GEMINI = False
 
-from backend.services.nlp.prompts import SYSTEM_PROMPT, FEW_SHOT_EXAMPLES
+from api.services.nlp.prompts import SYSTEM_PROMPT, FEW_SHOT_EXAMPLES
 
 # Valid ranges for the 11 CORE features (fed to XGBoost)
 CORE_FEATURE_RANGES = {

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, Float, String, DateTime, JSON
 from datetime import datetime, timezone
-from backend.core.database import Base
+from api.core.database import Base
 
 class PredictionRecord(Base):
     """Stores every prediction the system makes for audit trail."""

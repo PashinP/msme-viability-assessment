@@ -1,5 +1,5 @@
 from fastapi import Header, HTTPException, status
-from backend.core.database import SessionLocal
+from api.core.database import SessionLocal
 
 API_KEYS = {
     "msme-dev-key-2024",
