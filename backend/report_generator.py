@@ -629,11 +629,12 @@ def page_health_card(assessment, pred, features):
 
     for sec in sections:
         st_val = sec.get("status","unknown")
-        sc_v   = sec.get("score", 5)
+        raw_score = sec.get("score")
+        sc_v   = raw_score if raw_score is not None else 5
         sc     = STATUS_COLORS.get(st_val, G400)
         sc_bg  = STATUS_BG.get(st_val, G100)
         sc_hex = hex_of(sc)
-        sec_name = safe(sec["section"], 30)
+        sec_name = safe(sec.get("section", "Section"), 30)
         bank_view = safe(sec.get("what_bank_sees",""), 120)
 
         row_data = [[
