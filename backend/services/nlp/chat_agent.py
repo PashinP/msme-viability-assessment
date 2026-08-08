@@ -664,4 +664,4 @@ class ChatAgent:
 
 
 def get_chat_agent():
-    return ConversationalAgent()
+    return ChatAgent()
