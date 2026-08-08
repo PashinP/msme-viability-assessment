@@ -327,17 +327,22 @@ def generate_pdf_report(req: AssessmentRequest, db: Session = Depends(get_db), _
     schemes_out = {"schemes": schemes, "total_matched": len(schemes)}
 
     # Generate PDF
-    pdf_bytes = generate_report(
-        features=req.features,
-        context=req.context,
-        pred=pred,
-        shap_data=shap_data,
-        similar=similar,
-        assessment=assessment,
-        prescriptions=prescriptions,
-        optimizer=optimizer_data,
-        schemes=schemes_out,
-    )
+    try:
+        pdf_bytes = generate_report(
+            features=req.features,
+            context=req.context,
+            pred=pred,
+            shap_data=shap_data,
+            similar=similar,
+            assessment=assessment,
+            prescriptions=prescriptions,
+            optimizer=optimizer_data,
+            schemes=schemes_out,
+        )
+    except Exception as e:
+        import traceback
+        error_msg = traceback.format_exc()
+        raise HTTPException(status_code=500, detail=error_msg)
 
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
