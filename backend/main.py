@@ -6,18 +6,19 @@ from backend.core.database import init_db
 from backend.services.ml.engine import init_prediction_engine
 from backend.api.routes import assessment, report, chat, health
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    init_db()
-    init_prediction_engine()
-    yield
-
 app = FastAPI(
     title="MSME Viability Assessment API",
     description="Enterprise-grade loan viability assessment engine.",
-    version="2.0.0",
-    lifespan=lifespan
+    version="2.0.0"
 )
+
+@app.on_event("startup")
+def startup_event():
+    print("Starting up database...")
+    init_db()
+    print("Database started. Loading ML models...")
+    init_prediction_engine()
+    print("ML models loaded. Application is ready!")
 
 app.add_middleware(
     CORSMiddleware,
