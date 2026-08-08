@@ -8,7 +8,7 @@ import numpy as np
 import joblib
 import shap
 
-MODELS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
+MODELS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "models")
 
 LABEL_NAMES = {0: "Critical", 1: "At-Risk", 2: "Stable", 3: "Growing", 4: "Thriving"}
 
@@ -231,3 +231,17 @@ class PredictionEngine:
             "feasible": len(changes_out) > 0,
             "changes": changes_out,
         }
+
+
+_engine_instance = None
+
+def init_prediction_engine():
+    global _engine_instance
+    try:
+        _engine_instance = PredictionEngine()
+    except Exception as e:
+        print(f"Error loading models: {e}")
+        _engine_instance = None
+
+def get_prediction_engine():
+    return _engine_instance
