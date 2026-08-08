@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ 
+@layer base {
+  :root {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f1f5f9;
+    --bg-glass: rgba(255, 255, 255, 0.9);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    
+    --border: #cbd5e1;
+    --border-active: #2563eb;
+    
+    --radius: 0.75rem;
+    
+    /* Professional Blue Accent */
+    --accent-primary: #2563eb;
+    --accent-hover: #1d4ed8;
+
+    /* Grade Colors */
+    --grade-critical: #ef4444;
+    --grade-atrisk: #f97316;
+    --grade-stable: #eab308;
+    --grade-growing: #3b82f6;
+  }
+ 
+  .dark {
+    /* Same as root because app is dark-mode only */
+  }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+.glass-panel {
+  @apply bg-white border border-slate-200 rounded-[var(--radius)] shadow-sm;
+}
