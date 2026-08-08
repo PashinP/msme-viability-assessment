@@ -30,5 +30,5 @@ plotly>=5.20                # Interactive charts (replaces static matplotlib)
 matplotlib>=3.8             # Still used for some static charts
 
 # ─── PDF Report Generation ───────────────────────────────────────────────────
-fpdf2>=2.7
+reportlab>=4.0.0
 Pillow>=10.0
