@@ -3,15 +3,15 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 import io
 import traceback
-from api.schemas.assessment import AssessmentRequest
-from api.dependencies import get_db, verify_api_key
-from api.services.ml.engine import get_prediction_engine
-from api.services.pdf.report_generator import generate_report
-from api.services.ml.optimizer import get_loan_optimizer, match_government_schemes
-from api.services.ml.scoring import generate_readiness_assessment
-from api.services.ml.prescription import generate_prescriptions
-from api.services.ml.similarity import get_similar_engine
-from api.routers.assessment import _save_prediction
+from backend.schemas.assessment import AssessmentRequest
+from backend.api.dependencies import get_db, verify_api_key
+from backend.services.ml.engine import get_prediction_engine
+from backend.services.pdf.report_generator import generate_report
+from backend.services.ml.optimizer import get_loan_optimizer, match_government_schemes
+from backend.services.ml.scoring import generate_readiness_assessment
+from backend.services.ml.prescription import generate_prescriptions
+from backend.services.ml.similarity import get_similar_engine
+from backend.api.routes.assessment import _save_prediction
 
 router = APIRouter()
 

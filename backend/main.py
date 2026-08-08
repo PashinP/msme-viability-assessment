@@ -2,9 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from api.core.database import init_db
-from api.services.ml.engine import init_prediction_engine
-from api.routers import assessment, report, chat, health
+from backend.core.database import init_db
+from backend.services.ml.engine import init_prediction_engine
+from backend.api.routes import assessment, report, chat, health
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

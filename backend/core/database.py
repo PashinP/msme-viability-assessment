@@ -10,5 +10,5 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def init_db():
-    import api.models.prediction # Import models to register them
+    import backend.models.prediction # Import models to register them
     Base.metadata.create_all(bind=engine)

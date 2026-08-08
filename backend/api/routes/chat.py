@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
-from api.dependencies import verify_api_key
-from api.services.nlp.chat_agent import get_chat_agent
+from backend.api.dependencies import verify_api_key
+from backend.services.nlp.chat_agent import get_chat_agent
 
 router = APIRouter()
 

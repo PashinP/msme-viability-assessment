@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from api.dependencies import get_db, verify_api_key
-from api.models.prediction import PredictionRecord
-from api.services.ml.engine import get_prediction_engine
+from backend.api.dependencies import get_db, verify_api_key
+from backend.models.prediction import PredictionRecord
+from backend.services.ml.engine import get_prediction_engine
 
 router = APIRouter()
 
