@@ -31,7 +31,7 @@ from backend.database import init_db, get_db, PredictionRecord
 from backend.schemas import (
     LoanApplication, PredictionResult, ShapExplanation,
     RecommendationRequest, RecommendationResult, RecommendationChange,
-    BatchResult, HealthCheck
+    BatchResult, HealthCheck, AssessmentRequest
 )
 from backend.engine import PredictionEngine, LABEL_NAMES
 
@@ -294,38 +294,49 @@ def get_schemes(application: LoanApplication, _key: str = Depends(verify_api_key
 
 
 @app.post("/report")
-def generate_pdf_report(application: LoanApplication, _key: str = Depends(verify_api_key)):
-    """Generate a detailed PDF report for the loan application."""
+def generate_pdf_report(req: AssessmentRequest, db: Session = Depends(get_db), _key: str = Depends(verify_api_key)):
+    """Generate a detailed PDF report for the loan application including new deep diagnostics."""
     from fastapi.responses import StreamingResponse
     from backend.report_generator import generate_report
     from backend.optimizer import detect_red_flags, match_government_schemes
+    from backend.scoring_engine import generate_readiness_assessment
+    from backend.prescription_engine import generate_prescriptions
 
-    app_dict = _app_to_dict(application)
+    # 1. Base ML Prediction
+    pred = engine_instance.predict(req.features)
+    pid = _save_prediction(db, req.features, pred)
+    shap_data = engine_instance.explain(req.features)
 
-    # Gather all analysis data
-    pred = engine_instance.predict(app_dict)
-    shap_data = engine_instance.explain(app_dict)
-
+    # 2. Similar Loans
     try:
         sim = get_similar_engine()
-        similar = sim.find_similar(app_dict)
+        similar = sim.find_similar(req.features)
     except Exception:
         similar = None
 
-    red_flags_data = detect_red_flags(app_dict, similar)
-    red_flags_out = {"flags": red_flags_data, "total_flags": len(red_flags_data)}
+    # 3. New Deep Diagnostic Assessment
+    assessment = generate_readiness_assessment(req.features, req.context, pred)
 
+    # 4. Actionable Prescriptions based on assessment
+    prescriptions = generate_prescriptions(assessment, req.features, req.context)
+
+    # 5. Optimization & Schemes
     optimizer = get_loan_optimizer()
-    optimizer_data = optimizer.generate_optimal_structure(app_dict)
-
-    schemes = match_government_schemes(app_dict)
+    optimizer_data = optimizer.generate_optimal_structure(req.features)
+    schemes = match_government_schemes(req.features)
     schemes_out = {"schemes": schemes, "total_matched": len(schemes)}
 
     # Generate PDF
     pdf_bytes = generate_report(
-        features=app_dict, pred=pred, shap_data=shap_data,
-        similar=similar, red_flags=red_flags_out,
-        optimizer=optimizer_data, schemes=schemes_out,
+        features=req.features,
+        context=req.context,
+        pred=pred,
+        shap_data=shap_data,
+        similar=similar,
+        assessment=assessment,
+        prescriptions=prescriptions,
+        optimizer=optimizer_data,
+        schemes=schemes_out,
     )
 
     return StreamingResponse(
@@ -333,6 +344,38 @@ def generate_pdf_report(application: LoanApplication, _key: str = Depends(verify
         media_type="application/pdf",
         headers={"Content-Disposition": "attachment; filename=MSME_Loan_Report.pdf"},
     )
+
+
+@app.post("/assess")
+def full_assessment(req: AssessmentRequest, db: Session = Depends(get_db), _key: str = Depends(verify_api_key)):
+    """
+    Unified endpoint for the Loan Readiness Simulator.
+    Runs prediction, generates section-by-section scores, and prescribes fixes.
+    """
+    from backend.scoring_engine import generate_readiness_assessment
+    from backend.prescription_engine import generate_prescriptions
+    from backend.optimizer import match_government_schemes
+
+    # 1. Base ML Prediction
+    pred = engine_instance.predict(req.features)
+    pid = _save_prediction(db, req.features, pred)
+    
+    # 2. Section-by-section scoring
+    assessment = generate_readiness_assessment(req.features, req.context, pred)
+    
+    # 3. Prescriptions for weak areas
+    prescriptions = generate_prescriptions(assessment, req.features, req.context)
+    
+    # 4. Matched government schemes
+    schemes = match_government_schemes(req.features)
+
+    return {
+        "prediction_id": pid,
+        "prediction": pred,
+        "assessment": assessment,
+        "prescriptions": prescriptions,
+        "schemes": schemes
+    }
 
 
 @app.post("/chat")
