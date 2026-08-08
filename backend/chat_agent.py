@@ -37,8 +37,8 @@ except ImportError:
 
 from backend.prompts import SYSTEM_PROMPT, FEW_SHOT_EXAMPLES
 
-# Valid ranges for each feature (for validation)
-FEATURE_RANGES = {
+# Valid ranges for the 11 CORE features (fed to XGBoost)
+CORE_FEATURE_RANGES = {
     "Term":               (1, 480),
     "NoEmp":              (0, 500),
     "NewExist":           (1, 2),
@@ -52,18 +52,42 @@ FEATURE_RANGES = {
     "GrAppv":             (100, 10_000_000),
 }
 
-REQUIRED_FEATURES = list(FEATURE_RANGES.keys())
+# Context fields extracted by the advisor (used by Scoring Engine, not XGBoost)
+CONTEXT_FIELD_RANGES = {
+    "monthly_revenue":       (0, 100_000_000),   # INR
+    "monthly_expenses":      (0, 100_000_000),   # INR
+    "existing_debt_emi":     (0, 10_000_000),     # INR monthly
+    "years_in_operation":    (0, 100),
+    "collateral_value":      (0, 1_000_000_000),  # INR
+    "tax_filing_years":      (0, 50),
+}
+
+# String context fields (no numeric range, just presence check)
+CONTEXT_STRING_FIELDS = [
+    "industry_sector", "business_registration", "loan_purpose",
+    "previous_loan_history", "confidence_notes",
+]
+
+# Boolean context fields
+CONTEXT_BOOL_FIELDS = ["has_gst", "has_udyam"]
+
+# Combined for backward compatibility
+FEATURE_RANGES = {**CORE_FEATURE_RANGES, **CONTEXT_FIELD_RANGES}
+
+REQUIRED_FEATURES = list(CORE_FEATURE_RANGES.keys())  # Only core 11 are required
 
 
 def validate_features(features: dict) -> tuple[dict, list[str]]:
     """
     Validate and clamp extracted features to valid ranges.
+    Handles both core ML features and context fields.
     Returns (cleaned_features, warnings).
     """
     cleaned = {}
     warnings = []
 
-    for feat, (lo, hi) in FEATURE_RANGES.items():
+    # 1. Validate core numeric features (required for ML model)
+    for feat, (lo, hi) in CORE_FEATURE_RANGES.items():
         val = features.get(feat)
         if val is None:
             warnings.append(f"Missing feature: {feat}")
@@ -88,6 +112,31 @@ def validate_features(features: dict) -> tuple[dict, list[str]]:
             val = hi
 
         cleaned[feat] = val
+
+    # 2. Validate context numeric fields (optional, for scoring engine)
+    for feat, (lo, hi) in CONTEXT_FIELD_RANGES.items():
+        val = features.get(feat)
+        if val is None:
+            continue  # Context fields are optional — no warning
+
+        try:
+            val = float(val)
+            val = max(lo, min(hi, val))  # Silently clamp
+            cleaned[feat] = val
+        except (ValueError, TypeError):
+            pass  # Skip silently
+
+    # 3. Pass through string context fields
+    for feat in CONTEXT_STRING_FIELDS:
+        val = features.get(feat)
+        if val is not None and isinstance(val, str) and val.strip():
+            cleaned[feat] = val.strip()
+
+    # 4. Pass through boolean context fields
+    for feat in CONTEXT_BOOL_FIELDS:
+        val = features.get(feat)
+        if val is not None:
+            cleaned[feat] = bool(val)
 
     return cleaned, warnings
 
@@ -543,10 +592,13 @@ class ChatAgent:
         complete = False
 
         if features_raw:
-            features_only = {k: v for k, v in features_raw.items()
-                             if k in REQUIRED_FEATURES}
-            features_cleaned, warnings = validate_features(features_only)
-            complete = len(features_cleaned) == len(REQUIRED_FEATURES)
+            # Pass ALL fields (core + context) to validation
+            # validate_features handles core and context separately
+            features_cleaned, warnings = validate_features(features_raw)
+
+            # Extraction is complete when all 11 CORE features are present
+            core_count = sum(1 for f in REQUIRED_FEATURES if f in features_cleaned)
+            complete = core_count == len(REQUIRED_FEATURES)
 
         return {
             "response": response_text,

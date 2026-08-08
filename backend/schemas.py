@@ -23,6 +23,12 @@ class LoanApplication(BaseModel):
     GrAppv: float = Field(..., ge=0, description="Gross approved amount ($)")
 
 
+class AssessmentRequest(BaseModel):
+    """Request payload for the full readiness assessment."""
+    features: dict
+    context: dict = Field(default_factory=dict)
+
+
 class RecommendationRequest(BaseModel):
     """Request for counterfactual recommendations."""
     application: LoanApplication
