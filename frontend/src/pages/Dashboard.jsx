@@ -283,21 +283,26 @@ export default function Dashboard() {
         headers: { "X-API-Key": API_KEY },
         responseType: 'blob'
       })
-      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('download', `MSME_Assessment_${new Date().getTime()}.pdf`)
-      document.body.appendChild(link)
-      link.click()
       
-      // Delay cleanup so browser doesn't ignore the filename/download attribute
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.style.display = 'none';
+      link.href = url;
+      link.download = `MSME_Assessment_${new Date().getTime()}.pdf`;
+      
+      document.body.appendChild(link);
+      link.click();
+      
+      // Delay cleanup
       setTimeout(() => {
-        document.body.removeChild(link)
-        window.URL.revokeObjectURL(url)
-      }, 200)
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 500);
     } catch (err) {
       console.error("Failed to download PDF", err)
-      alert("PDF generation failed. Please try again.")
+      const errorDetail = err.response ? `Server Error: ${err.response.status}` : err.message;
+      alert(`PDF generation failed: ${errorDetail}. Check console for details.`)
     }
   }
 
