@@ -152,6 +152,8 @@ export default function Dashboard() {
   // -- State: Results --
   const [results, setResults] = useState(null)
   const [assessmentData, setAssessmentData] = useState(null)
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
+  const [pdfReadyUrl, setPdfReadyUrl] = useState(null)
   const [isEvaluating, setIsEvaluating] = useState(false)
 
   // -- State: UI --
@@ -160,6 +162,7 @@ export default function Dashboard() {
   // ─── Fetch Assessment ─────────────────────────────────
   const fetchAssessment = async (featureSet, contextData = {}) => {
     setIsEvaluating(true)
+    setPdfReadyUrl(null)
     try {
       const headers = { "X-API-Key": API_KEY }
 
@@ -268,6 +271,7 @@ export default function Dashboard() {
   // ─── PDF Download ─────────────────────────────────────
   const handleDownloadPDF = async () => {
     if (!results || isEvaluating) return
+    setIsGeneratingPdf(true)
     try {
       const coreFeatures = {}
       const extractedContext = { ...businessContext }
@@ -286,23 +290,14 @@ export default function Dashboard() {
       
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.style.display = 'none';
-      link.href = url;
-      link.download = `MSME_Assessment_${new Date().getTime()}.pdf`;
+      setPdfReadyUrl(url);
       
-      document.body.appendChild(link);
-      link.click();
-      
-      // Delay cleanup
-      setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }, 500);
     } catch (err) {
       console.error("Failed to download PDF", err)
       const errorDetail = err.response ? `Server Error: ${err.response.status}` : err.message;
       alert(`PDF generation failed: ${errorDetail}. Check console for details.`)
+    } finally {
+      setIsGeneratingPdf(false)
     }
   }
 
@@ -316,10 +311,35 @@ export default function Dashboard() {
           <p className="text-sm text-slate-500">AI-powered business loan assessment for MSMEs</p>
         </div>
         {assessmentData && (
-          <Button onClick={handleDownloadPDF} variant="outline" className="gap-2 border-blue-200 text-blue-600 hover:bg-blue-50 text-sm">
-            <Download className="w-4 h-4" />
-            Export PDF
-          </Button>
+          pdfReadyUrl ? (
+            <a 
+              href={pdfReadyUrl} 
+              download={`MSME_Assessment_${new Date().getTime()}.pdf`}
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md gap-2 border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 px-4 py-2 text-sm font-medium transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Download Ready!
+            </a>
+          ) : (
+            <Button 
+              onClick={handleDownloadPDF} 
+              variant="outline" 
+              className="gap-2 border-blue-200 text-blue-600 hover:bg-blue-50 text-sm"
+              disabled={isGeneratingPdf}
+            >
+              {isGeneratingPdf ? (
+                <>
+                  <div className="w-4 h-4 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  Export PDF
+                </>
+              )}
+            </Button>
+          )
         )}
       </div>
 
