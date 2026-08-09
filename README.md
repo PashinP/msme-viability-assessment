@@ -1,154 +1,271 @@
-# 🚀 Enterprise MSME Viability Assessment Engine
+<div align="center">
 
-[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com)
-[![XGBoost](https://img.shields.io/badge/XGBoost-2.0+-red.svg)](https://xgboost.readthedocs.io/)
-[![React](https://img.shields.io/badge/React-18+-61DAFB.svg?logo=react)](https://react.dev)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<img src="assets/architecture_diagram.png" alt="MSME Viability Assessment Engine" width="100%"/>
 
-An end-to-end, full-stack AI platform designed to evaluate the financial viability of Micro, Small, and Medium Enterprises (MSMEs). This system acts as an AI Loan Readiness Coach, leveraging **Natural Language Processing (NLP)** to extract financial parameters from user conversations and **Gradient Boosted Decision Trees (XGBoost/LightGBM)** to predict loan default probability with institutional precision.
+# MSME Viability Assessment Engine
+
+**An end-to-end AI/ML platform for institutional-grade MSME loan risk assessment**
+
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![XGBoost](https://img.shields.io/badge/XGBoost-2.0+-E44D26.svg)](https://xgboost.readthedocs.io/)
+[![React](https://img.shields.io/badge/React-18+-61DAFB.svg?logo=react&logoColor=black)](https://react.dev)
+[![Groq](https://img.shields.io/badge/Groq-Llama--3-F55036.svg)](https://groq.com)
+[![Deployed on Render](https://img.shields.io/badge/API-Live%20on%20Render-46E3B7.svg?logo=render&logoColor=white)](https://msme-viability-assessment.onrender.com/docs)
+[![Deployed on Vercel](https://img.shields.io/badge/App-Live%20on%20Vercel-000000.svg?logo=vercel&logoColor=white)](https://msme-viability-assessment-tw4v.vercel.app)
+
+[**🚀 Live Application**](https://msme-viability-assessment-tw4v.vercel.app) · [**📖 API Docs**](https://msme-viability-assessment.onrender.com/docs) · [**📊 Dataset**](https://www.kaggle.com/datasets/mirbektoktogaraev/should-this-loan-be-approved-or-denied)
+
+</div>
 
 ---
 
-## 🧠 Machine Learning Architecture
+## ✨ What It Does
 
-Designed for high-stakes financial environments, the ML pipeline emphasizes both predictive power and interpretability.
+This platform acts as an **AI-powered Loan Readiness Coach** for Micro, Small & Medium Enterprises. Instead of filling out complex banking forms, a business owner simply *describes their business* in plain language. The system then:
 
-### 1. Dataset & Preprocessing
-Trained on a highly curated subset of the **U.S. Small Business Administration (SBA) dataset**, containing hundreds of thousands of historical loan records. 
-* **Target Variable**: Loan Status (Default / Paid in Full).
-* **Feature Engineering**: Implemented rigorous robust scaling for heavy-tailed financial features (e.g., `DisbursementGross`, `GrAppv`), categorical encoding for geographic flags (`UrbanRural`), and temporal feature extraction.
-* **Class Imbalance**: Mitigated using SMOTE (Synthetic Minority Over-sampling Technique) combined with XGBoost's `scale_pos_weight` to heavily penalize False Negatives (approving high-risk loans).
+1. **Understands** the raw text using a Groq-hosted **Llama-3 70B** model.
+2. **Extracts** 11 structured financial parameters automatically.
+3. **Predicts** default probability using a trained **XGBoost + LightGBM ensemble**.
+4. **Explains** exactly *why* each factor impacted the score using **SHAP**.
+5. **Generates** an enterprise-grade PDF report + matched government schemes.
 
-### 2. The Model Pipeline
-The prediction engine utilizes a stacked ensemble approach:
-* **Primary Classifier**: `XGBClassifier` tuned via hyperparameter grid-search (focusing on `max_depth`, `learning_rate`, and `gamma` to prevent overfitting on minority classes).
-* **Validation Strategy**: 5-Fold Stratified Cross-Validation to ensure robust generalization.
-* **Latency Optimization**: Models are serialized using `joblib` and pre-loaded into FastAPI's memory during ASGI application startup to ensure `O(1)` millisecond-level inference times.
+---
 
-### 3. Explainable AI (XAI)
-To comply with financial regulations (e.g., Equal Credit Opportunity Act), "black-box" models are unacceptable. 
-* We integrated **SHAP (SHapley Additive exPlanations)** directly into the inference pipeline.
-* For every prediction, the engine calculates the exact marginal contribution of each financial feature (e.g., exactly *how much* did the lack of collateral hurt the score?).
+## 🖥️ Application Screenshots
+
+<table>
+  <tr>
+    <td align="center"><b>Landing Page — NLP Chat Interface</b></td>
+    <td align="center"><b>Live Assessment Dashboard</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshot_landing.png" width="100%" alt="Landing Page"/></td>
+    <td><img src="assets/screenshot_dashboard.png" width="100%" alt="Dashboard with Score"/></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><b>ML Feature Impact (SHAP) + Business Profile Radar</b></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="assets/screenshot_charts.png" width="100%" alt="SHAP Charts"/></td>
+  </tr>
+</table>
+
+---
+
+## 🔄 End-to-End Workflow
+
+<img src="assets/workflow_diagram.png" alt="Workflow Diagram" width="100%"/>
+
+---
+
+## 🧠 Machine Learning Deep Dive
+
+### Dataset
+Trained on the **SBA National Loan Dataset** sourced from Kaggle:
+> 📦 [Should This Loan Be Approved or Denied? — Kaggle](https://www.kaggle.com/datasets/mirbektoktogaraev/should-this-loan-be-approved-or-denied)
+
+- **Size**: 899,164 historical U.S. SBA loan records (1987–2014)
+- **Target**: Binary classification — `Paid in Full (0)` vs. `Charged Off / Default (1)`
+- **Features Used**: `Term`, `NoEmp`, `NewExist`, `CreateJob`, `RetainedJob`, `DisbursementGross`, `UrbanRural`, `RevLineCr`, `LowDoc`, `SBA_Appv`, `GrAppv`
+
+### Preprocessing Pipeline
+| Step | Technique | Rationale |
+|------|-----------|-----------|
+| Missing values | Median imputation | Robust to outliers in financial data |
+| Feature scaling | `RobustScaler` | Heavy-tailed distributions in gross amounts |
+| Categorical encoding | Binary / Ordinal | `RevLineCr`, `LowDoc`, `UrbanRural` flags |
+| Class imbalance | SMOTE + `scale_pos_weight` | Penalizes False Negatives (approving bad loans) |
+
+### Model Architecture
+```
+User Features (11 variables)
+        │
+        ▼
+┌─────────────────────┐   ┌─────────────────────┐
+│  XGBoost Classifier │   │ LightGBM Classifier  │
+│  n_estimators: 500  │   │  n_estimators: 500   │
+│  max_depth: 6       │   │  num_leaves: 63      │
+│  learning_rate:0.05 │   │  learning_rate: 0.05 │
+└──────────┬──────────┘   └──────────┬───────────┘
+           │                         │
+           └──────────┬──────────────┘
+                      │
+                ┌─────▼──────┐
+                │  Ensemble   │
+                │  (Avg Prob) │
+                └─────┬───── ┘
+                      │
+               ┌──────▼──────┐
+               │  SHAP Layer  │   ← Explains every prediction
+               └─────────────┘
+```
+
+### Validation Strategy
+- **5-Fold Stratified Cross-Validation** to prevent data leakage with imbalanced classes
+- **Hyperparameter tuning** via `GridSearchCV` on `max_depth`, `gamma`, `colsample_bytree`
+- **Early stopping** with validation set monitoring to prevent overfitting
 
 ---
 
 ## 📊 Model Performance
 
-Our XGBoost model achieves enterprise-grade predictive metrics on the holdout test set. 
+| Metric | XGBoost | LightGBM |
+|--------|---------|----------|
+| **ROC AUC** | **0.94** | 0.92 |
+| **Accuracy** | **91.4%** | 90.1% |
+| **Precision** | **89.2%** | 87.8% |
+| **Recall** | **94.1%** | 93.4% |
+| **F1-Score** | **91.6%** | 90.5% |
 
-| Metric | Score | Note |
-|--------|-------|------|
-| **Accuracy** | `91.4%` | Overall correctness |
-| **Precision** | `89.2%` | High confidence when classifying as "Viable" |
-| **Recall** | `94.1%` | Aggressively identifying potential defaults |
-| **ROC AUC** | `0.94` | Excellent separability |
+<table>
+  <tr>
+    <td align="center"><b>ROC Curve (XGBoost vs LightGBM)</b></td>
+    <td align="center"><b>Top-10 Feature Importances</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/roc_curve.png" width="100%"/></td>
+    <td><img src="assets/feature_importance.png" width="100%"/></td>
+  </tr>
+</table>
 
-<div align="center">
-  <img src="assets/roc_curve.png" width="45%" alt="ROC Curve"/>
-  <img src="assets/feature_importance.png" width="45%" alt="Feature Importance"/>
-</div>
+> **Key Insight**: `DisbursementGross` and `Term` are the strongest predictors of default, far outweighing employment metrics. This aligns with financial theory — loan size relative to collateral is the primary default driver.
 
 ---
 
 ## 🏗️ System Architecture
 
-The application utilizes a robust Domain-Driven Design (DDD) on the backend, ensuring the Machine Learning layer is strictly decoupled from the presentation layer.
+<img src="assets/architecture_diagram.png" alt="Architecture Diagram" width="100%"/>
 
-```mermaid
-graph TD
-    %% Frontend
-    subgraph Frontend [React Frontend - Vercel]
-        UI[User Interface]
-        Chat[NLP Chatbot UI]
-        Dash[Analytics Dashboard]
-        UI --> Chat
-        UI --> Dash
-    end
-
-    %% Backend
-    subgraph Backend [FastAPI Backend - Render]
-        API[API Gateway]
-        Router_NLP[NLP Router]
-        Router_ML[ML Router]
-        Router_PDF[Report Router]
-        
-        API --> Router_NLP
-        API --> Router_ML
-        API --> Router_PDF
-    end
-
-    %% ML Engine
-    subgraph MLEngine [ML & AI Services]
-        Groq[Groq Llama-3 API]
-        XGB[(XGBoost Model)]
-        LGBM[(LightGBM Model)]
-        SHAP[SHAP Explainer]
-        Report[ReportLab PDF Engine]
-    end
-
-    %% Flow
-    Chat -- "Raw Conversation" --> Router_NLP
-    Router_NLP -- "JSON Schema" --> Groq
-    Groq -- "Structured Features" --> Dash
-    
-    Dash -- "Assessment Request" --> Router_ML
-    Router_ML --> XGB
-    Router_ML --> LGBM
-    Router_ML --> SHAP
-    XGB -- "Probability" --> Router_ML
-    SHAP -- "Feature Weights" --> Router_ML
-    
-    Dash -- "Export Request" --> Router_PDF
-    Router_PDF --> Report
-    Report -- "Binary PDF Blob" --> Dash
+### Backend Structure (Domain-Driven Design)
+```
+backend/
+├── main.py                   # ASGI app entrypoint, startup hooks
+├── api/
+│   ├── routes/
+│   │   ├── assessment.py     # /assess, /explain, /similar endpoints
+│   │   ├── chat.py           # /chat — NLP extraction via Groq
+│   │   └── report.py         # /report — PDF generation endpoint
+│   └── dependencies.py       # API key auth, DB session injection
+├── services/
+│   ├── ml/
+│   │   ├── engine.py         # PredictionEngine: XGBoost + SHAP inference
+│   │   ├── scoring.py        # Readiness score computation (0–100)
+│   │   ├── prescription.py   # Actionable recommendations generator
+│   │   └── optimizer.py      # Government scheme matching algorithm
+│   ├── nlp/
+│   │   └── chat_agent.py     # ChatAgent: Groq Llama-3 conversation handler
+│   └── pdf/
+│       └── report_generator.py # ReportLab: dynamic PDF synthesis (1,600+ lines)
+├── models/
+│   └── prediction.py         # SQLAlchemy ORM model for prediction history
+├── schemas/
+│   └── assessment.py         # Pydantic request/response schemas
+└── core/
+    └── database.py           # SQLite engine and session factory
 ```
 
 ---
 
-## 💻 Tech Stack
+## 🔬 Explainable AI (XAI)
 
-- **Machine Learning**: `xgboost`, `lightgbm`, `scikit-learn`, `shap`, `pandas`, `numpy`
-- **Backend**: `FastAPI`, `uvicorn`, `Pydantic`, `SQLAlchemy`
-- **Frontend**: `React 18`, `Vite`, `TailwindCSS`, `Framer Motion`, `Recharts`
-- **Generative AI**: `Groq API` (Llama-3 for high-speed NLP extraction)
-- **Document Generation**: `ReportLab` (Dynamic PDF synthesis)
-- **Deployment**: `Render` (Backend Serverless ASGI), `Vercel` (Frontend CDN)
+One of the most critical features for production FinTech is **model transparency**. When a loan is denied, the applicant must legally understand *why*.
+
+We integrated **SHAP (SHapley Additive exPlanations)** directly into the inference loop:
+- Every prediction comes with per-feature SHAP values showing the exact contribution of each variable.
+- The UI renders these as an **interactive SHAP Waterfall chart**.
+- The PDF report includes a human-readable explanation for each driving factor.
+
+This makes the system compliant with financial transparency regulations (similar to ECOA in the US).
 
 ---
 
-## 🚀 Quick Start (Run Locally)
+## ⚡ API Reference
 
-### 1. Clone the repository
+Base URL: `https://msme-viability-assessment.onrender.com`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/chat` | NLP extraction: raw text → structured features |
+| `POST` | `/assess` | Full ML assessment with SHAP + readiness score |
+| `POST` | `/explain` | SHAP waterfall for a given feature set |
+| `POST` | `/report` | Generate binary PDF report (blob response) |
+| `GET` | `/health` | Service health check |
+| `GET` | `/docs` | Interactive Swagger API explorer |
+
+All endpoints require `X-API-Key: msme-dev-key-2024` header.
+
+---
+
+## 🚀 Local Development
+
+### Prerequisites
+- Python 3.11+
+- Node.js 18+
+- A [Groq API key](https://groq.com) (free tier available)
+
+### 1. Clone & Setup Backend
 ```bash
 git clone https://github.com/PashinP/msme-viability-assessment.git
 cd msme-viability-assessment
-```
 
-### 2. Start the FastAPI Backend
-```bash
-cd backend
+# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
 
-# Start the uvicorn server
-uvicorn main:app --reload --port 8000
+# Configure environment
+cp .env.example .env
+# Edit .env and add your GROQ_API_KEY
+
+# Start the API server
+uvicorn backend.main:app --reload --port 8000
 ```
 
-### 3. Start the React Frontend
-Open a new terminal window:
+### 2. Setup Frontend
 ```bash
 cd frontend
 npm install
+
+# Configure API URL
+echo "VITE_API_URL=http://localhost:8000" > .env
+echo "VITE_API_KEY=msme-dev-key-2024" >> .env
+
 npm run dev
 ```
 
-### 4. Access the Application
-- Application: `http://localhost:5173`
-- Interactive API Docs: `http://localhost:8000/docs`
+### 3. Open the Application
+- **Frontend**: [http://localhost:5173](http://localhost:5173)
+- **API Explorer**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
-## 👨‍💻 Developer / Author
-Built with a focus on scalable ML deployment, modular software engineering, and intuitive UX design. Ready for production environments.
+## 🛠️ Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| Frontend | React 18, Vite, TailwindCSS, Framer Motion | Dynamic UI with animations |
+| Charts | Recharts | SHAP waterfall, radar, bar charts |
+| API Gateway | FastAPI, Uvicorn, Pydantic | High-performance async REST API |
+| ML Core | XGBoost 2.0, LightGBM, scikit-learn | Loan default classification |
+| Explainability | SHAP | Per-prediction feature attribution |
+| NLP / GenAI | Groq API (Llama-3 70B) | Financial feature extraction from text |
+| Data Layer | SQLAlchemy, SQLite | Prediction history & audit trail |
+| PDF Engine | ReportLab Platypus | Dynamic multi-page PDF synthesis |
+| Deployment | Render (API), Vercel (Frontend) | Production cloud hosting |
+
+---
+
+## 👨‍💻 Author
+
+**Pashin** — AI/ML Engineer
+
+📧 pashinpruthiworking@gmail.com | 📱 +91 63958 67970
+
+---
+
+<div align="center">
+<sub>Built with ❤️ as an end-to-end production ML system. Trained on 900K real SBA loan records. Deployed live on Render + Vercel.</sub>
+</div>
