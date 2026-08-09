@@ -229,9 +229,15 @@ export default function Dashboard() {
           if (CORE_KEYS.includes(k)) coreFeatures[k] = v
           else ctx[k] = v
         }
-        setFeatures(prev => ({ ...prev, ...coreFeatures }))
-        setBusinessContext(prev => ({ ...prev, ...ctx }))
-        fetchAssessment(coreFeatures, ctx)
+        setFeatures(prev => {
+          const mergedFeatures = { ...prev, ...coreFeatures }
+          setBusinessContext(prevCtx => {
+            const mergedCtx = { ...prevCtx, ...ctx }
+            fetchAssessment(mergedFeatures, mergedCtx)
+            return mergedCtx
+          })
+          return mergedFeatures
+        })
       }
     } catch (error) {
       console.error("Chat error:", error)
