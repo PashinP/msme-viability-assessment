@@ -43,3 +43,19 @@ def full_assessment(req: AssessmentRequest, db: Session = Depends(get_db), _key:
         "prediction_id": pid, "prediction": pred, "assessment": assessment,
         "prescriptions": prescriptions, "schemes": schemes
     }
+
+@router.post("/explain")
+def explain_prediction(features: dict, _key: str = Depends(verify_api_key)):
+    engine_instance = get_prediction_engine()
+    if not engine_instance:
+        raise HTTPException(503, "Scoring engine not available")
+    return engine_instance.explain(features)
+
+@router.post("/similar")
+def similar_profiles(features: dict, _key: str = Depends(verify_api_key)):
+    try:
+        from backend.services.ml.similarity import get_similar_engine
+        sim = get_similar_engine()
+        return sim.find_similar(features)
+    except Exception as e:
+        raise HTTPException(503, str(e))
